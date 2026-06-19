@@ -1,3 +1,4 @@
+using System.IO;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -5,6 +6,57 @@ using Microsoft.IdentityModel.Tokens;
 using WebFashion.Api.Models;
 using WebFashion.Api.Services;
 
+// 1. Load local .env file if it exists at startup
+var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
+if (File.Exists(envPath))
+{
+    foreach (var line in File.ReadAllLines(envPath))
+    {
+        var parts = line.Split('=', 2);
+        if (parts.Length == 2)
+        {
+            var envKey = parts[0].Trim();
+            var envVal = parts[1].Trim();
+            Environment.SetEnvironmentVariable(envKey, envVal);
+        }
+    }
+}
+
+// 2. Map standard environment variables to ASP.NET Core Configuration mapping format
+var dbServer = Environment.GetEnvironmentVariable("DB_SERVER") ?? "127.0.0.1";
+var dbPort = Environment.GetEnvironmentVariable("DB_PORT") ?? "1433";
+var dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? "WEBECOMMERCE";
+var dbUser = Environment.GetEnvironmentVariable("DB_USER") ?? "sa";
+var dbPwd = Environment.GetEnvironmentVariable("DB_PWD") ?? "123456";
+
+var connectionString = $"Server={dbServer},{dbPort};Database={dbName};User Id={dbUser};Password={dbPwd};TrustServerCertificate=True;";
+Environment.SetEnvironmentVariable("ConnectionStrings__DefaultConnection", connectionString);
+
+var geminiApiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY");
+if (!string.IsNullOrEmpty(geminiApiKey))
+{
+    Environment.SetEnvironmentVariable("Gemini__ApiKey", geminiApiKey);
+}
+
+var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET");
+if (!string.IsNullOrEmpty(jwtSecret))
+{
+    Environment.SetEnvironmentVariable("Jwt__Secret", jwtSecret);
+}
+
+var meiliHost = Environment.GetEnvironmentVariable("MEILI_HOST");
+if (!string.IsNullOrEmpty(meiliHost))
+{
+    Environment.SetEnvironmentVariable("MeiliSearch__Host", meiliHost);
+}
+
+var meiliKey = Environment.GetEnvironmentVariable("MEILI_API_KEY");
+if (!string.IsNullOrEmpty(meiliKey))
+{
+    Environment.SetEnvironmentVariable("MeiliSearch__ApiKey", meiliKey);
+}
+
+// 3. Initialize builder
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -34,8 +86,8 @@ builder.Services.AddCors(options =>
 });
 
 // Configure JWT Authentication
-var jwtSecret = builder.Configuration["Jwt:Secret"] ?? "ma_bao_mat";
-var key = Encoding.UTF8.GetBytes(jwtSecret);
+var actualJwtSecret = builder.Configuration["Jwt:Secret"] ?? "ma_bao_mat";
+var key = Encoding.UTF8.GetBytes(actualJwtSecret);
 
 builder.Services.AddAuthentication(options =>
 {
