@@ -3,11 +3,20 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using WebFashion.Api.Models;
+using WebFashion.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+
+// Register HttpClient
+builder.Services.AddHttpClient();
+
+// Register Auxiliary Services
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IMeiliSearchService, MeiliSearchService>();
+builder.Services.AddScoped<IGeminiService, GeminiService>();
 
 // Configure EF Core with SQL Server
 builder.Services.AddDbContext<AppDbContext>(options =>
