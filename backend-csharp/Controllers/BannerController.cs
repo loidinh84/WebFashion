@@ -42,6 +42,18 @@ namespace WebFashion.Api.Controllers
                     .Where(b => b.TrangThai == "active" && b.ViTri == viTriSearch)
                     .Where(b => (b.NgayBatDau == null || b.NgayBatDau <= now) && (b.NgayKetThuc == null || b.NgayKetThuc >= now))
                     .OrderBy(b => b.ThuTu)
+                    .Select(b => new
+                    {
+                        id = b.Id,
+                        tieu_de = b.TieuDe,
+                        hinh_anh_url = b.HinhAnhUrl,
+                        duong_dan = b.DuongDan,
+                        vi_tri = b.ViTri,
+                        thu_tu = b.ThuTu,
+                        ngay_bat_dau = b.NgayBatDau,
+                        ngay_ket_thuc = b.NgayKetThuc,
+                        trang_thai = b.TrangThai
+                    })
                     .ToListAsync();
 
                 return Ok(banners);
@@ -69,6 +81,18 @@ namespace WebFashion.Api.Controllers
                 var banners = await _context.Banners
                     .OrderBy(b => b.ViTri)
                     .ThenBy(b => b.ThuTu)
+                    .Select(b => new
+                    {
+                        id = b.Id,
+                        tieu_de = b.TieuDe,
+                        hinh_anh_url = b.HinhAnhUrl,
+                        duong_dan = b.DuongDan,
+                        vi_tri = b.ViTri,
+                        thu_tu = b.ThuTu,
+                        ngay_bat_dau = b.NgayBatDau,
+                        ngay_ket_thuc = b.NgayKetThuc,
+                        trang_thai = b.TrangThai
+                    })
                     .ToListAsync();
 
                 return Ok(banners);
@@ -148,7 +172,7 @@ namespace WebFashion.Api.Controllers
                 _context.Banners.Add(banner);
                 await _context.SaveChangesAsync();
 
-                return StatusCode(201, new { message = "Tạo banner thành công", data = banner });
+                return StatusCode(201, new { message = "Tạo banner thành công", data = ProjectBanner(banner) });
             }
             catch (Exception ex)
             {
@@ -258,7 +282,7 @@ namespace WebFashion.Api.Controllers
 
                 await _context.SaveChangesAsync();
 
-                return Ok(new { message = "Cập nhật banner thành công", data = banner });
+                return Ok(new { message = "Cập nhật banner thành công", data = ProjectBanner(banner) });
             }
             catch (Exception ex)
             {
@@ -310,6 +334,22 @@ namespace WebFashion.Api.Controllers
                 Console.WriteLine($"Lỗi xóa banner: {ex.Message}");
                 return StatusCode(500, new { message = "Lỗi xóa banner" });
             }
+        }
+
+        private object ProjectBanner(Banner b)
+        {
+            return new
+            {
+                id = b.Id,
+                tieu_de = b.TieuDe,
+                hinh_anh_url = b.HinhAnhUrl,
+                duong_dan = b.DuongDan,
+                vi_tri = b.ViTri,
+                thu_tu = b.ThuTu,
+                ngay_bat_dau = b.NgayBatDau,
+                ngay_ket_thuc = b.NgayKetThuc,
+                trang_thai = b.TrangThai
+            };
         }
     }
 }

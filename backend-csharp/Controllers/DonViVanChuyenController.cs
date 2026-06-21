@@ -39,7 +39,7 @@ namespace WebFashion.Api.Controllers
                     .OrderBy(l => l.Id)
                     .ToListAsync();
 
-                return Ok(list);
+                return Ok(list.Select(ProjectLogistic));
             }
             catch (Exception ex)
             {
@@ -64,7 +64,7 @@ namespace WebFashion.Api.Controllers
                     .OrderByDescending(l => l.Id)
                     .ToListAsync();
 
-                return Ok(list);
+                return Ok(list.Select(ProjectLogistic));
             }
             catch (Exception ex)
             {
@@ -125,7 +125,7 @@ namespace WebFashion.Api.Controllers
                 _context.DonViVanChuyens.Add(newLogistic);
                 await _context.SaveChangesAsync();
 
-                return StatusCode(201, new { message = "Thêm đơn vị vận chuyển thành công", data = newLogistic });
+                return StatusCode(201, new { message = "Thêm đơn vị vận chuyển thành công", data = ProjectLogistic(newLogistic) });
             }
             catch (Exception ex)
             {
@@ -201,7 +201,7 @@ namespace WebFashion.Api.Controllers
 
                 await _context.SaveChangesAsync();
 
-                return Ok(new { message = "Cập nhật thành công", data = logistic });
+                return Ok(new { message = "Cập nhật thành công", data = ProjectLogistic(logistic) });
             }
             catch (Exception ex)
             {
@@ -286,6 +286,20 @@ namespace WebFashion.Api.Controllers
                 Console.WriteLine($"Lỗi xóa đơn vị vận chuyển: {ex.Message}");
                 return StatusCode(500, new { message = "Lỗi server" });
             }
+        }
+
+        private object ProjectLogistic(DonViVanChuyen l)
+        {
+            return new
+            {
+                id = l.Id,
+                ten_don_vi = l.TenDonVi,
+                ma = l.Ma,
+                logo_url = l.LogoUrl,
+                phi_co_ban = l.PhiCoBan,
+                thoi_gian_du_kien = l.ThoiGianDuKien,
+                trang_thai = l.TrangThai
+            };
         }
     }
 }

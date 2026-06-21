@@ -74,6 +74,21 @@ namespace WebFashion.Api.Controllers
 
                 var list = await _context.KhuyenMais
                     .OrderByDescending(k => k.Id)
+                    .Select(k => new
+                    {
+                        id = k.Id,
+                        ma_khuyen_mai = k.MaKhuyenMai,
+                        ten_chuong_trinh = k.TenChuongTrinh,
+                        loai = k.Loai,
+                        gia_tri = k.GiaTri,
+                        gia_tri_toi_da = k.GiaTriToiDa,
+                        don_hang_toi_thieu = k.DonHangToiThieu,
+                        so_luong_ma = k.SoLuongMa,
+                        da_su_dung = k.DaSuDung,
+                        ngay_bat_dau = k.NgayBatDau,
+                        ngay_ket_thuc = k.NgayKetThuc,
+                        trang_thai = k.TrangThai
+                    })
                     .ToListAsync();
 
                 return Ok(list);
@@ -124,7 +139,7 @@ namespace WebFashion.Api.Controllers
                 _context.KhuyenMais.Add(newVoucher);
                 await _context.SaveChangesAsync();
 
-                return StatusCode(201, new { message = "Tạo mã khuyến mãi thành công!", data = newVoucher });
+                return StatusCode(201, new { message = "Tạo mã khuyến mãi thành công!", data = ProjectKhuyenMai(newVoucher) });
             }
             catch (Exception ex)
             {
@@ -175,7 +190,7 @@ namespace WebFashion.Api.Controllers
 
                 await _context.SaveChangesAsync();
 
-                return Ok(new { message = "Cập nhật mã thành công!", data = voucher });
+                return Ok(new { message = "Cập nhật mã thành công!", data = ProjectKhuyenMai(voucher) });
             }
             catch (Exception ex)
             {
@@ -245,6 +260,25 @@ namespace WebFashion.Api.Controllers
                 Console.WriteLine($"Lỗi xóa KM: {ex.Message}");
                 return StatusCode(500, new { message = "Lỗi xóa mã khuyến mãi!" });
             }
+        }
+
+        private object ProjectKhuyenMai(KhuyenMai k)
+        {
+            return new
+            {
+                id = k.Id,
+                ma_khuyen_mai = k.MaKhuyenMai,
+                ten_chuong_trinh = k.TenChuongTrinh,
+                loai = k.Loai,
+                gia_tri = k.GiaTri,
+                gia_tri_toi_da = k.GiaTriToiDa,
+                don_hang_toi_thieu = k.DonHangToiThieu,
+                so_luong_ma = k.SoLuongMa,
+                da_su_dung = k.DaSuDung,
+                ngay_bat_dau = k.NgayBatDau,
+                ngay_ket_thuc = k.NgayKetThuc,
+                trang_thai = k.TrangThai
+            };
         }
     }
 }

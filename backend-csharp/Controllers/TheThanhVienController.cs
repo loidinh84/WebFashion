@@ -51,6 +51,16 @@ namespace WebFashion.Api.Controllers
 
                 var list = await _context.TheThanhViens
                     .OrderBy(m => m.MucChiTieuTu)
+                    .Select(m => new
+                    {
+                        id = m.Id,
+                        ten_hang = m.TenHang,
+                        muc_chi_tieu_tu = m.MucChiTieuTu,
+                        ty_le_giam_gia = m.TyLeGiamGia,
+                        diem_thuong_them = m.DiemThuongThem,
+                        mau_the = m.MauThe,
+                        mo_ta_quyen_loi = m.MoTaQuyenLoi
+                    })
                     .ToListAsync();
 
                 return Ok(list);
@@ -107,7 +117,7 @@ namespace WebFashion.Api.Controllers
                 _context.TheThanhViens.Add(newThe);
                 await _context.SaveChangesAsync();
 
-                return StatusCode(201, new { message = "Thêm hạng thẻ thành công!", data = newThe });
+                return StatusCode(201, new { message = "Thêm hạng thẻ thành công!", data = ProjectMembership(newThe) });
             }
             catch (Exception ex)
             {
@@ -166,7 +176,7 @@ namespace WebFashion.Api.Controllers
 
                 await _context.SaveChangesAsync();
 
-                return Ok(new { message = "Cập nhật thành công!", data = the });
+                return Ok(new { message = "Cập nhật thành công!", data = ProjectMembership(the) });
             }
             catch (Exception ex)
             {
@@ -213,6 +223,20 @@ namespace WebFashion.Api.Controllers
                 Console.WriteLine($"Lỗi xóa thẻ thành viên: {ex.Message}");
                 return StatusCode(500, new { message = "Lỗi xóa hạng thẻ" });
             }
+        }
+
+        private object ProjectMembership(TheThanhVien m)
+        {
+            return new
+            {
+                id = m.Id,
+                ten_hang = m.TenHang,
+                muc_chi_tieu_tu = m.MucChiTieuTu,
+                ty_le_giam_gia = m.TyLeGiamGia,
+                diem_thuong_them = m.DiemThuongThem,
+                mau_the = m.MauThe,
+                mo_ta_quyen_loi = m.MoTaQuyenLoi
+            };
         }
     }
 }

@@ -114,16 +114,16 @@ namespace WebFashion.Api.Controllers
                     .Take(limit)
                     .Select(p => new
                     {
-                        p.Id,
-                        p.MaPhieu,
-                        p.NguoiTao,
-                        p.TrangThai,
-                        p.GhiChu,
-                        p.TongChenhLech,
-                        p.LenhTang,
-                        p.LenhGiam,
-                        p.CreatedAt,
-                        p.UpdatedAt,
+                        id = p.Id,
+                        ma_phieu = p.MaPhieu,
+                        nguoi_tao = p.NguoiTao,
+                        trang_thai = p.TrangThai,
+                        ghi_chu = p.GhiChu,
+                        tong_chenh_lech = p.TongChenhLech,
+                        lenh_tang = p.LenhTang,
+                        lenh_giam = p.LenhGiam,
+                        created_at = p.CreatedAt,
+                        updated_at = p.UpdatedAt,
                         nguoi_tao_tk = p.NguoiTaoNavigation != null ? new { id = p.NguoiTaoNavigation.Id, ho_ten = p.NguoiTaoNavigation.HoTen } : null
                     })
                     .ToListAsync();
@@ -161,36 +161,36 @@ namespace WebFashion.Api.Controllers
                 // Format response to match Node.js
                 var result = new
                 {
-                    phieu.Id,
-                    phieu.MaPhieu,
-                    phieu.NguoiTao,
-                    phieu.TrangThai,
-                    phieu.GhiChu,
-                    phieu.TongChenhLech,
-                    phieu.LenhTang,
-                    phieu.LenhGiam,
-                    phieu.CreatedAt,
-                    phieu.UpdatedAt,
+                    id = phieu.Id,
+                    ma_phieu = phieu.MaPhieu,
+                    nguoi_tao = phieu.NguoiTao,
+                    trang_thai = phieu.TrangThai,
+                    ghi_chu = phieu.GhiChu,
+                    tong_chenh_lech = phieu.TongChenhLech,
+                    lenh_tang = phieu.LenhTang,
+                    lenh_giam = phieu.LenhGiam,
+                    created_at = phieu.CreatedAt,
+                    updated_at = phieu.UpdatedAt,
                     nguoi_tao_tk = phieu.NguoiTaoNavigation != null ? new { id = phieu.NguoiTaoNavigation.Id, ho_ten = phieu.NguoiTaoNavigation.HoTen } : null,
                     chi_tiet = phieu.ChiTietKiemKhos.Select(ct => new
                     {
-                        ct.Id,
-                        ct.PhieuKiemId,
-                        ct.BienTheId,
-                        ct.SoLuongHeThong,
-                        ct.SoLuongThucTe,
+                        id = ct.Id,
+                        phieu_kiem_id = ct.PhieuKiemId,
+                        bien_the_id = ct.BienTheId,
+                        so_luong_he_thong = ct.SoLuongHeThong,
+                        so_luong_thuc_te = ct.SoLuongThucTe,
                         bien_the = new
                         {
-                            ct.BienThe.Id,
-                            ct.BienThe.Sku,
-                            ct.BienThe.MauSac,
-                            ct.BienThe.DungLuong,
-                            ct.BienThe.Ram,
-                            ct.BienThe.TonKho,
+                            id = ct.BienThe.Id,
+                            sku = ct.BienThe.Sku,
+                            mau_sac = ct.BienThe.MauSac,
+                            dung_luong = ct.BienThe.DungLuong,
+                            ram = ct.BienThe.Ram,
+                            ton_kho = ct.BienThe.TonKho,
                             san_pham = new
                             {
-                                ct.BienThe.SanPham.Id,
-                                ct.BienThe.SanPham.TenSanPham,
+                                id = ct.BienThe.SanPham.Id,
+                                ten_san_pham = ct.BienThe.SanPham.TenSanPham,
                                 hinh_anh = ct.BienThe.SanPham.HinhAnhSanPhams.Take(1).Select(img => new { url_anh = img.UrlAnh }).ToList()
                             }
                         }

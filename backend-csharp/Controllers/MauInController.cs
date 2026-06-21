@@ -57,7 +57,17 @@ namespace WebFashion.Api.Controllers
             {
                 if (!IsAdmin()) return StatusCode(403, new { message = "Quyền truy cập bị từ chối!" });
 
-                var templates = await _context.MauIns.ToListAsync();
+                var templates = await _context.MauIns
+                    .Select(m => new
+                    {
+                        id = m.Id,
+                        loai = m.Loai,
+                        ten_mau = m.TenMau,
+                        noi_dung_html = m.NoiDungHtml,
+                        la_mac_dinh = m.LaMacDinh,
+                        trang_thai = m.TrangThai
+                    })
+                    .ToListAsync();
                 return Ok(templates);
             }
             catch (Exception ex)
@@ -122,7 +132,7 @@ namespace WebFashion.Api.Controllers
                 {
                     return NotFound(new { message = "Không tìm thấy mẫu in" });
                 }
-                return Ok(template);
+                return Ok(ProjectTemplate(template));
             }
             catch (Exception ex)
             {
@@ -149,7 +159,7 @@ namespace WebFashion.Api.Controllers
                     template.TrangThai = dto.TrangThai;
 
                     await _context.SaveChangesAsync();
-                    return Ok(new { message = "Cập nhật mẫu in thành công", data = template });
+                    return Ok(new { message = "Cập nhật mẫu in thành công", data = ProjectTemplate(template) });
                 }
                 else
                 {
@@ -163,7 +173,7 @@ namespace WebFashion.Api.Controllers
                     };
                     _context.MauIns.Add(newTemplate);
                     await _context.SaveChangesAsync();
-                    return StatusCode(201, new { message = "Tạo mẫu in thành công", data = newTemplate });
+                    return StatusCode(201, new { message = "Tạo mẫu in thành công", data = ProjectTemplate(newTemplate) });
                 }
             }
             catch (Exception ex)
@@ -197,6 +207,19 @@ namespace WebFashion.Api.Controllers
                 Console.WriteLine($"Lỗi khi xóa mẫu in: {ex.Message}");
                 return StatusCode(500, new { message = "Lỗi khi xóa mẫu in" });
             }
+        }
+
+        private object ProjectTemplate(MauIn m)
+        {
+            return new
+            {
+                id = m.Id,
+                loai = m.Loai,
+                ten_mau = m.TenMau,
+                noi_dung_html = m.NoiDungHtml,
+                la_mac_dinh = m.LaMacDinh,
+                trang_thai = m.TrangThai
+            };
         }
     }
 }

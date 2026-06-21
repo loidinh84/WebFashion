@@ -116,8 +116,17 @@ namespace WebFashion.Api.Controllers
                     return BadRequest(new { message = "Thiếu thông tin biến thể hoặc số lượng!" });
                 }
 
-                long bienTheId = vtProp.GetInt64();
-                int soLuong = qtyProp.GetInt32();
+                long bienTheId = 0;
+                if (vtProp.ValueKind == JsonValueKind.Number)
+                    bienTheId = vtProp.GetInt64();
+                else if (vtProp.ValueKind == JsonValueKind.String)
+                    long.TryParse(vtProp.GetString(), out bienTheId);
+
+                int soLuong = 0;
+                if (qtyProp.ValueKind == JsonValueKind.Number)
+                    soLuong = qtyProp.GetInt32();
+                else if (qtyProp.ValueKind == JsonValueKind.String)
+                    int.TryParse(qtyProp.GetString(), out soLuong);
 
                 if (bienTheId <= 0 || soLuong <= 0)
                 {
@@ -191,8 +200,17 @@ namespace WebFashion.Api.Controllers
                     return BadRequest(new { message = "Thiếu thông tin!" });
                 }
 
-                long bienTheId = vtProp.GetInt64();
-                int targetQty = qtyProp.GetInt32();
+                long bienTheId = 0;
+                if (vtProp.ValueKind == JsonValueKind.Number)
+                    bienTheId = vtProp.GetInt64();
+                else if (vtProp.ValueKind == JsonValueKind.String)
+                    long.TryParse(vtProp.GetString(), out bienTheId);
+
+                int targetQty = 0;
+                if (qtyProp.ValueKind == JsonValueKind.Number)
+                    targetQty = qtyProp.GetInt32();
+                else if (qtyProp.ValueKind == JsonValueKind.String)
+                    int.TryParse(qtyProp.GetString(), out targetQty);
 
                 if (targetQty <= 0)
                 {
@@ -302,8 +320,17 @@ namespace WebFashion.Api.Controllers
                             continue;
                         }
 
-                        long variantId = vIdProp.GetInt64();
-                        int qty = qtyProp.GetInt32();
+                        long variantId = 0;
+                        if (vIdProp.ValueKind == JsonValueKind.Number)
+                            variantId = vIdProp.GetInt64();
+                        else if (vIdProp.ValueKind == JsonValueKind.String)
+                            long.TryParse(vIdProp.GetString(), out variantId);
+
+                        int qty = 0;
+                        if (qtyProp.ValueKind == JsonValueKind.Number)
+                            qty = qtyProp.GetInt32();
+                        else if (qtyProp.ValueKind == JsonValueKind.String)
+                            int.TryParse(qtyProp.GetString(), out qty);
 
                         if (variantId <= 0 || qty <= 0) continue;
 
@@ -377,7 +404,16 @@ namespace WebFashion.Api.Controllers
                 var variantIds = new List<long>();
                 foreach (var idEl in idsProp.EnumerateArray())
                 {
-                    variantIds.Add(idEl.GetInt64());
+                    long val = 0;
+                    if (idEl.ValueKind == JsonValueKind.Number)
+                        val = idEl.GetInt64();
+                    else if (idEl.ValueKind == JsonValueKind.String)
+                        long.TryParse(idEl.GetString(), out val);
+                    
+                    if (val > 0)
+                    {
+                        variantIds.Add(val);
+                    }
                 }
 
                 if (variantIds.Count == 0)

@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using WebFashion.Api.Models;
@@ -60,7 +61,11 @@ if (!string.IsNullOrEmpty(meiliKey))
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
 
 // Register HttpClient
 builder.Services.AddHttpClient();
@@ -72,7 +77,9 @@ builder.Services.AddScoped<IGeminiService, GeminiService>();
 
 // Configure EF Core with SQL Server
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlOptions => sqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
 
 // Configure CORS
 builder.Services.AddCors(options =>
@@ -86,7 +93,7 @@ builder.Services.AddCors(options =>
 });
 
 // Configure JWT Authentication
-var actualJwtSecret = builder.Configuration["Jwt:Secret"] ?? "ma_bao_mat";
+var actualJwtSecret = builder.Configuration["Jwt:Secret"] ?? "ma_bao_mat_an_toan_va_bao_mat_hon_123456";
 var key = Encoding.UTF8.GetBytes(actualJwtSecret);
 
 builder.Services.AddAuthentication(options =>
@@ -118,6 +125,18 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+// Serve static files from the uploads directory
+var uploadsPath = Path.Combine(app.Environment.ContentRootPath, "uploads");
+if (!Directory.Exists(uploadsPath))
+{
+    Directory.CreateDirectory(uploadsPath);
+}
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(uploadsPath),
+    RequestPath = "/uploads"
+});
 
 app.UseHttpsRedirection();
 

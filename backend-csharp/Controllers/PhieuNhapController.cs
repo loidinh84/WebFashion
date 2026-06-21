@@ -146,36 +146,36 @@ namespace WebFashion.Api.Controllers
                     .Take(limit)
                     .Select(p => new
                     {
-                        p.Id,
-                        p.MaPhieu,
-                        p.NhaCcId,
-                        p.NguoiTao,
-                        p.TrangThai,
-                        p.GiamGia,
-                        p.TongTien,
-                        p.GhiChu,
-                        p.CreatedAt,
-                        p.UpdatedAt,
+                        id = p.Id,
+                        ma_phieu = p.MaPhieu,
+                        nha_cc_id = p.NhaCcId,
+                        nguoi_tao = p.NguoiTao,
+                        trang_thai = p.TrangThai,
+                        giam_gia = p.GiamGia,
+                        tong_tien = p.TongTien,
+                        ghi_chu = p.GhiChu,
+                        created_at = p.CreatedAt,
+                        updated_at = p.UpdatedAt,
                         nha_cung_cap = p.NhaCc != null ? new { id = p.NhaCc.Id, ten_nha_cc = p.NhaCc.TenNhaCc } : null,
                         nguoi_tao_tk = p.NguoiTaoNavigation != null ? new { id = p.NguoiTaoNavigation.Id, ho_ten = p.NguoiTaoNavigation.HoTen } : null,
                         chi_tiet = p.ChiTietPhieuNhaps.Select(ct => new
                         {
-                            ct.Id,
-                            ct.PhieuNhapId,
-                            ct.BienTheId,
-                            ct.SoLuong,
-                            ct.DonGiaNhap,
-                            ct.GiamGia,
+                            id = ct.Id,
+                            phieu_nhap_id = ct.PhieuNhapId,
+                            bien_the_id = ct.BienTheId,
+                            so_luong = ct.SoLuong,
+                            don_gia_nhap = ct.DonGiaNhap,
+                            giam_gia = ct.GiamGia,
                             bien_the = ct.BienThe != null ? new
                             {
-                                ct.BienThe.Id,
-                                ct.BienThe.Sku,
-                                ct.BienThe.MauSac,
-                                ct.BienThe.DungLuong,
+                                id = ct.BienThe.Id,
+                                sku = ct.BienThe.Sku,
+                                mau_sac = ct.BienThe.MauSac,
+                                dung_luong = ct.BienThe.DungLuong,
                                 san_pham = ct.BienThe.SanPham != null ? new
                                 {
-                                    ct.BienThe.SanPham.Id,
-                                    ct.BienThe.SanPham.TenSanPham
+                                    id = ct.BienThe.SanPham.Id,
+                                    ten_san_pham = ct.BienThe.SanPham.TenSanPham
                                 } : null
                             } : null
                         }).ToList()
@@ -216,16 +216,16 @@ namespace WebFashion.Api.Controllers
                 // Format response to match Node.js
                 var result = new
                 {
-                    phieu.Id,
-                    phieu.MaPhieu,
-                    phieu.NhaCcId,
-                    phieu.NguoiTao,
-                    phieu.TrangThai,
-                    phieu.GiamGia,
-                    phieu.TongTien,
-                    phieu.GhiChu,
-                    phieu.CreatedAt,
-                    phieu.UpdatedAt,
+                    id = phieu.Id,
+                    ma_phieu = phieu.MaPhieu,
+                    nha_cc_id = phieu.NhaCcId,
+                    nguoi_tao = phieu.NguoiTao,
+                    trang_thai = phieu.TrangThai,
+                    giam_gia = phieu.GiamGia,
+                    tong_tien = phieu.TongTien,
+                    ghi_chu = phieu.GhiChu,
+                    created_at = phieu.CreatedAt,
+                    updated_at = phieu.UpdatedAt,
                     nha_cung_cap = phieu.NhaCc != null ? new
                     {
                         id = phieu.NhaCc.Id,
@@ -236,23 +236,23 @@ namespace WebFashion.Api.Controllers
                     nguoi_tao_tk = phieu.NguoiTaoNavigation != null ? new { id = phieu.NguoiTaoNavigation.Id, ho_ten = phieu.NguoiTaoNavigation.HoTen } : null,
                     chi_tiet = phieu.ChiTietPhieuNhaps.Select(ct => new
                     {
-                        ct.Id,
-                        ct.PhieuNhapId,
-                        ct.BienTheId,
-                        ct.SoLuong,
-                        ct.DonGiaNhap,
-                        ct.GiamGia,
+                        id = ct.Id,
+                        phieu_nhap_id = ct.PhieuNhapId,
+                        bien_the_id = ct.BienTheId,
+                        so_luong = ct.SoLuong,
+                        don_gia_nhap = ct.DonGiaNhap,
+                        giam_gia = ct.GiamGia,
                         bien_the = new
                         {
-                            ct.BienThe.Id,
-                            ct.BienThe.Sku,
-                            ct.BienThe.MauSac,
-                            ct.BienThe.DungLuong,
-                            ct.BienThe.Ram,
+                            id = ct.BienThe.Id,
+                            sku = ct.BienThe.Sku,
+                            mau_sac = ct.BienThe.MauSac,
+                            dung_luong = ct.BienThe.DungLuong,
+                            ram = ct.BienThe.Ram,
                             san_pham = new
                             {
-                                ct.BienThe.SanPham.Id,
-                                ct.BienThe.SanPham.TenSanPham,
+                                id = ct.BienThe.SanPham.Id,
+                                ten_san_pham = ct.BienThe.SanPham.TenSanPham,
                                 hinh_anh = ct.BienThe.SanPham.HinhAnhSanPhams.Take(1).Select(img => new { url_anh = img.UrlAnh }).ToList()
                             }
                         }

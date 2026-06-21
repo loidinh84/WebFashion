@@ -26,6 +26,81 @@ namespace WebFashion.Api.Controllers
             _meiliSearchService = meiliSearchService;
         }
 
+        private object ProjectVariant(BienTheSanPham bt)
+        {
+            return new
+            {
+                id = bt.Id,
+                sku = bt.Sku,
+                mau_sac = bt.MauSac,
+                dung_luong = bt.DungLuong,
+                ram = bt.Ram,
+                gia_goc = (double)bt.GiaGoc,
+                gia_ban = (double)bt.GiaBan,
+                ton_kho = bt.TonKho,
+                trang_thai = bt.TrangThai,
+                ma_mau_hex = bt.MaMauHex
+            };
+        }
+
+        private object ProjectImage(HinhAnhSanPham img)
+        {
+            return new
+            {
+                id = img.Id,
+                url_anh = img.UrlAnh,
+                la_anh_chinh = img.LaAnhChinh,
+                alt_text = img.AltText,
+                thu_tu = img.ThuTu
+            };
+        }
+
+        private object ProjectAttribute(ThuocTinhSanPham tt)
+        {
+            return new
+            {
+                id = tt.Id,
+                ten_thuoc_tinh = tt.TenThuocTinh,
+                gia_tri = tt.GiaTri,
+                nhom = tt.Nhom,
+                thu_tu = tt.ThuTu
+            };
+        }
+
+        private object ProjectSanPham(SanPham sp, int countReviews = 0, double avgRating = 0.0)
+        {
+            return new
+            {
+                id = sp.Id,
+                ten_san_pham = sp.TenSanPham,
+                slug = sp.Slug,
+                danh_muc_id = sp.DanhMucId,
+                nha_cung_cap_id = sp.NhaCungCapId,
+                mo_ta_ngan = sp.MoTaNgan,
+                mo_ta_day_du = sp.MoTaDayDu,
+                thuong_hieu = sp.ThuongHieu,
+                trang_thai = sp.TrangThai,
+                noi_bat = sp.NoiBat,
+                luot_xem = sp.LuotXem,
+                luot_mua = sp.LuotMua,
+                can_nang = sp.CanNang,
+                chieu_dai = sp.ChieuDai,
+                chieu_rong = sp.ChieuRong,
+                chieu_cao = sp.ChieuCao,
+                meta_title = sp.MetaTitle,
+                meta_description = sp.MetaDescription,
+                created_at = sp.CreatedAt,
+                updated_at = sp.UpdatedAt,
+                danh_muc = sp.DanhMuc != null ? new { id = sp.DanhMuc.Id, ten_danh_muc = sp.DanhMuc.TenDanhMuc, slug = sp.DanhMuc.Slug } : null,
+                nha_cung_cap = sp.NhaCungCap != null ? new { id = sp.NhaCungCap.Id, ten_nha_cc = sp.NhaCungCap.TenNhaCc } : null,
+                bien_the = sp.BienTheSanPhams.Select(ProjectVariant),
+                thuoc_tinh = sp.ThuocTinhSanPhams.Select(ProjectAttribute),
+                hinh_anh = sp.HinhAnhSanPhams.Select(ProjectImage),
+                tong_danh_gia = countReviews,
+                diem_danh_gia = avgRating
+            };
+        }
+
         private string GenerateSlug(string text)
         {
             if (string.IsNullOrEmpty(text)) return "";
@@ -126,6 +201,7 @@ namespace WebFashion.Api.Controllers
                     var productsList = await _context.SanPhams
                         .Where(sp => matchedIds.Contains(sp.Id) && sp.TrangThai == "active")
                         .Include(sp => sp.DanhMuc)
+                        .Include(sp => sp.NhaCungCap)
                         .Include(sp => sp.BienTheSanPhams)
                         .Include(sp => sp.HinhAnhSanPhams)
                         .ToListAsync();
@@ -135,9 +211,22 @@ namespace WebFashion.Api.Controllers
                         .OrderBy(p => matchedIds.IndexOf(p.Id))
                         .ToList();
 
+                    var mappedSearch = new List<object>();
+                    foreach (var sp in sortedProducts)
+                    {
+                        var approvedReviews = await _context.DanhGiaSanPhams
+                            .Where(r => r.SanPhamId == sp.Id && r.TrangThai == "approved")
+                            .ToListAsync();
+
+                        double avgRating = approvedReviews.Any() ? Math.Round(approvedReviews.Average(r => (double)(r.SoSao ?? 0)), 1) : 0.0;
+                        int countReviews = approvedReviews.Count;
+
+                        mappedSearch.Add(ProjectSanPham(sp, countReviews, avgRating));
+                    }
+
                     return Ok(new
                     {
-                        data = sortedProducts,
+                        data = mappedSearch,
                         currentPage = pageNumber,
                         totalPages = (int)Math.Ceiling((double)searchResult.EstimatedTotalHits / limitNumber),
                         totalItems = searchResult.EstimatedTotalHits
@@ -198,6 +287,8 @@ namespace WebFashion.Api.Controllers
 
                 var totalCount = await queryable.CountAsync();
                 var products = await queryable
+                    .Include(sp => sp.DanhMuc)
+                    .Include(sp => sp.NhaCungCap)
                     .Include(sp => sp.BienTheSanPhams)
                     .Include(sp => sp.ThuocTinhSanPhams)
                     .Include(sp => sp.HinhAnhSanPhams)
@@ -205,7 +296,6 @@ namespace WebFashion.Api.Controllers
                     .Take(limitNumber)
                     .ToListAsync();
 
-                // Select results and mapping rating aggregates
                 var mappedResult = new List<object>();
                 foreach (var sp in products)
                 {
@@ -213,30 +303,10 @@ namespace WebFashion.Api.Controllers
                         .Where(r => r.SanPhamId == sp.Id && r.TrangThai == "approved")
                         .ToListAsync();
 
-                    double avgRating = approvedReviews.Any() ? Math.Round(approvedReviews.Average(r => (double)r.SoSao), 1) : 0.0;
+                    double avgRating = approvedReviews.Any() ? Math.Round(approvedReviews.Average(r => (double)(r.SoSao ?? 0)), 1) : 0.0;
                     int countReviews = approvedReviews.Count;
 
-                    mappedResult.Add(new
-                    {
-                        sp.Id,
-                        sp.TenSanPham,
-                        sp.Slug,
-                        sp.DanhMucId,
-                        sp.NhaCungCapId,
-                        sp.MoTaNgan,
-                        sp.MoTaDayDu,
-                        sp.ThuongHieu,
-                        sp.TrangThai,
-                        sp.NoiBat,
-                        sp.LuotXem,
-                        sp.CreatedAt,
-                        sp.UpdatedAt,
-                        bien_the = sp.BienTheSanPhams,
-                        thuoc_tinh = sp.ThuocTinhSanPhams,
-                        hinh_anh = sp.HinhAnhSanPhams,
-                        tong_danh_gia = countReviews,
-                        diem_danh_gia = avgRating
-                    });
+                    mappedResult.Add(ProjectSanPham(sp, countReviews, avgRating));
                 }
 
                 return Ok(new
@@ -297,24 +367,31 @@ namespace WebFashion.Api.Controllers
 
                 var mappedList = products.Select(p => new
                 {
-                    p.Id,
-                    p.TenSanPham,
-                    p.Slug,
-                    p.DanhMucId,
-                    p.NhaCungCapId,
-                    p.MoTaNgan,
-                    p.MoTaDayDu,
-                    p.ThuongHieu,
-                    p.TrangThai,
-                    p.NoiBat,
-                    p.LuotXem,
-                    p.CreatedAt,
-                    p.UpdatedAt,
-                    danh_muc = p.DanhMuc != null ? new { p.DanhMuc.Id, p.DanhMuc.TenDanhMuc } : null,
-                    nha_cung_cap = p.NhaCungCap != null ? new { p.NhaCungCap.Id, p.NhaCungCap.TenNhaCc } : null,
-                    bien_the = p.BienTheSanPhams,
-                    thuoc_tinh = p.ThuocTinhSanPhams,
-                    hinh_anh = p.HinhAnhSanPhams
+                    id = p.Id,
+                    ten_san_pham = p.TenSanPham,
+                    slug = p.Slug,
+                    danh_muc_id = p.DanhMucId,
+                    nha_cung_cap_id = p.NhaCungCapId,
+                    mo_ta_ngan = p.MoTaNgan,
+                    mo_ta_day_du = p.MoTaDayDu,
+                    thuong_hieu = p.ThuongHieu,
+                    trang_thai = p.TrangThai,
+                    noi_bat = p.NoiBat,
+                    luot_xem = p.LuotXem,
+                    luot_mua = p.LuotMua,
+                    can_nang = p.CanNang,
+                    chieu_dai = p.ChieuDai,
+                    chieu_rong = p.ChieuRong,
+                    chieu_cao = p.ChieuCao,
+                    meta_title = p.MetaTitle,
+                    meta_description = p.MetaDescription,
+                    created_at = p.CreatedAt,
+                    updated_at = p.UpdatedAt,
+                    danh_muc = p.DanhMuc != null ? new { id = p.DanhMuc.Id, ten_danh_muc = p.DanhMuc.TenDanhMuc } : null,
+                    nha_cung_cap = p.NhaCungCap != null ? new { id = p.NhaCungCap.Id, ten_nha_cc = p.NhaCungCap.TenNhaCc } : null,
+                    bien_the = p.BienTheSanPhams.Select(ProjectVariant),
+                    thuoc_tinh = p.ThuocTinhSanPhams.Select(ProjectAttribute),
+                    hinh_anh = p.HinhAnhSanPhams.Select(ProjectImage)
                 });
 
                 return Ok(new
@@ -352,23 +429,30 @@ namespace WebFashion.Api.Controllers
 
                 return Ok(new
                 {
-                    sanPham.Id,
-                    sanPham.TenSanPham,
-                    sanPham.Slug,
-                    sanPham.DanhMucId,
-                    sanPham.NhaCungCapId,
-                    sanPham.MoTaNgan,
-                    sanPham.MoTaDayDu,
-                    sanPham.ThuongHieu,
-                    sanPham.TrangThai,
-                    sanPham.NoiBat,
-                    sanPham.LuotXem,
-                    sanPham.CreatedAt,
-                    sanPham.UpdatedAt,
-                    danh_muc = sanPham.DanhMuc != null ? new { sanPham.DanhMuc.Id, sanPham.DanhMuc.TenDanhMuc, sanPham.DanhMuc.Slug } : null,
-                    bien_the = sanPham.BienTheSanPhams,
-                    thuoc_tinh = sanPham.ThuocTinhSanPhams,
-                    hinh_anh = sanPham.HinhAnhSanPhams
+                    id = sanPham.Id,
+                    ten_san_pham = sanPham.TenSanPham,
+                    slug = sanPham.Slug,
+                    danh_muc_id = sanPham.DanhMucId,
+                    nha_cung_cap_id = sanPham.NhaCungCapId,
+                    mo_ta_ngan = sanPham.MoTaNgan,
+                    mo_ta_day_du = sanPham.MoTaDayDu,
+                    thuong_hieu = sanPham.ThuongHieu,
+                    trang_thai = sanPham.TrangThai,
+                    noi_bat = sanPham.NoiBat,
+                    luot_xem = sanPham.LuotXem,
+                    luot_mua = sanPham.LuotMua,
+                    can_nang = sanPham.CanNang,
+                    chieu_dai = sanPham.ChieuDai,
+                    chieu_rong = sanPham.ChieuRong,
+                    chieu_cao = sanPham.ChieuCao,
+                    meta_title = sanPham.MetaTitle,
+                    meta_description = sanPham.MetaDescription,
+                    created_at = sanPham.CreatedAt,
+                    updated_at = sanPham.UpdatedAt,
+                    danh_muc = sanPham.DanhMuc != null ? new { id = sanPham.DanhMuc.Id, ten_danh_muc = sanPham.DanhMuc.TenDanhMuc, slug = sanPham.DanhMuc.Slug } : null,
+                    bien_the = sanPham.BienTheSanPhams.Select(ProjectVariant),
+                    thuoc_tinh = sanPham.ThuocTinhSanPhams.Select(ProjectAttribute),
+                    hinh_anh = sanPham.HinhAnhSanPhams.Select(ProjectImage)
                 });
             }
             catch (Exception)
@@ -397,23 +481,30 @@ namespace WebFashion.Api.Controllers
 
                 return Ok(new
                 {
-                    sanPham.Id,
-                    sanPham.TenSanPham,
-                    sanPham.Slug,
-                    sanPham.DanhMucId,
-                    sanPham.NhaCungCapId,
-                    sanPham.MoTaNgan,
-                    sanPham.MoTaDayDu,
-                    sanPham.ThuongHieu,
-                    sanPham.TrangThai,
-                    sanPham.NoiBat,
-                    sanPham.LuotXem,
-                    sanPham.CreatedAt,
-                    sanPham.UpdatedAt,
-                    danh_muc = sanPham.DanhMuc != null ? new { sanPham.DanhMuc.Id, sanPham.DanhMuc.TenDanhMuc, sanPham.DanhMuc.Slug, sanPham.DanhMuc.DanhMucChaId } : null,
-                    bien_the = sanPham.BienTheSanPhams,
-                    thuoc_tinh = sanPham.ThuocTinhSanPhams,
-                    hinh_anh = sanPham.HinhAnhSanPhams
+                    id = sanPham.Id,
+                    ten_san_pham = sanPham.TenSanPham,
+                    slug = sanPham.Slug,
+                    danh_muc_id = sanPham.DanhMucId,
+                    nha_cung_cap_id = sanPham.NhaCungCapId,
+                    mo_ta_ngan = sanPham.MoTaNgan,
+                    mo_ta_day_du = sanPham.MoTaDayDu,
+                    thuong_hieu = sanPham.ThuongHieu,
+                    trang_thai = sanPham.TrangThai,
+                    noi_bat = sanPham.NoiBat,
+                    luot_xem = sanPham.LuotXem,
+                    luot_mua = sanPham.LuotMua,
+                    can_nang = sanPham.CanNang,
+                    chieu_dai = sanPham.ChieuDai,
+                    chieu_rong = sanPham.ChieuRong,
+                    chieu_cao = sanPham.ChieuCao,
+                    meta_title = sanPham.MetaTitle,
+                    meta_description = sanPham.MetaDescription,
+                    created_at = sanPham.CreatedAt,
+                    updated_at = sanPham.UpdatedAt,
+                    danh_muc = sanPham.DanhMuc != null ? new { id = sanPham.DanhMuc.Id, ten_danh_muc = sanPham.DanhMuc.TenDanhMuc, slug = sanPham.DanhMuc.Slug, danh_muc_cha_id = sanPham.DanhMuc.DanhMucChaId } : null,
+                    bien_the = sanPham.BienTheSanPhams.Select(ProjectVariant),
+                    thuoc_tinh = sanPham.ThuocTinhSanPhams.Select(ProjectAttribute),
+                    hinh_anh = sanPham.HinhAnhSanPhams.Select(ProjectImage)
                 });
             }
             catch (Exception)
@@ -457,6 +548,12 @@ namespace WebFashion.Api.Controllers
             [FromForm] string? bien_the,
             [FromForm] string? thuoc_tinh,
             [FromForm] string? hinh_anh,
+            [FromForm] int? can_nang,
+            [FromForm] int? chieu_dai,
+            [FromForm] int? chieu_rong,
+            [FromForm] int? chieu_cao,
+            [FromForm] string? meta_title,
+            [FromForm] string? meta_description,
             List<IFormFile> hinh_anh_files)
         {
             using var t = await _context.Database.BeginTransactionAsync();
@@ -482,6 +579,12 @@ namespace WebFashion.Api.Controllers
                     TrangThai = string.IsNullOrEmpty(trang_thai) ? "active" : trang_thai,
                     NoiBat = isNoiBat,
                     LuotXem = 0,
+                    CanNang = can_nang,
+                    ChieuDai = chieu_dai,
+                    ChieuRong = chieu_rong,
+                    ChieuCao = chieu_cao,
+                    MetaTitle = meta_title,
+                    MetaDescription = meta_description,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -489,10 +592,15 @@ namespace WebFashion.Api.Controllers
                 _context.SanPhams.Add(newProduct);
                 await _context.SaveChangesAsync(); // Generates ID
 
+                var jsonOptions = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+                };
+
                 // Save variants
                 if (!string.IsNullOrEmpty(bien_the))
                 {
-                    var variants = JsonSerializer.Deserialize<List<BienTheSanPham>>(bien_the, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var variants = JsonSerializer.Deserialize<List<BienTheSanPham>>(bien_the, jsonOptions);
                     if (variants != null)
                     {
                         foreach (var bt in variants)
@@ -507,7 +615,7 @@ namespace WebFashion.Api.Controllers
                 // Save attributes
                 if (!string.IsNullOrEmpty(thuoc_tinh))
                 {
-                    var attributes = JsonSerializer.Deserialize<List<ThuocTinhSanPham>>(thuoc_tinh, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var attributes = JsonSerializer.Deserialize<List<ThuocTinhSanPham>>(thuoc_tinh, jsonOptions);
                     if (attributes != null)
                     {
                         foreach (var tt in attributes)
@@ -684,6 +792,12 @@ namespace WebFashion.Api.Controllers
             [FromForm] string? bien_the,
             [FromForm] string? thuoc_tinh,
             [FromForm] string? hinh_anh,
+            [FromForm] int? can_nang,
+            [FromForm] int? chieu_dai,
+            [FromForm] int? chieu_rong,
+            [FromForm] int? chieu_cao,
+            [FromForm] string? meta_title,
+            [FromForm] string? meta_description,
             List<IFormFile> hinh_anh_files)
         {
             using var t = await _context.Database.BeginTransactionAsync();
@@ -705,6 +819,12 @@ namespace WebFashion.Api.Controllers
                 sanPham.MoTaDayDu = mo_ta_day_du;
                 sanPham.TrangThai = string.IsNullOrEmpty(trang_thai) ? sanPham.TrangThai : trang_thai;
                 sanPham.NoiBat = isNoiBat;
+                sanPham.CanNang = can_nang;
+                sanPham.ChieuDai = chieu_dai;
+                sanPham.ChieuRong = chieu_rong;
+                sanPham.ChieuCao = chieu_cao;
+                sanPham.MetaTitle = meta_title;
+                sanPham.MetaDescription = meta_description;
                 sanPham.UpdatedAt = DateTime.UtcNow;
 
                 if (ten_san_pham != sanPham.TenSanPham)
@@ -714,10 +834,15 @@ namespace WebFashion.Api.Controllers
 
                 await _context.SaveChangesAsync();
 
+                var jsonOptions = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+                };
+
                 // Handle variants updates
                 if (!string.IsNullOrEmpty(bien_the))
                 {
-                    var variants = JsonSerializer.Deserialize<List<BienTheSanPham>>(bien_the, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var variants = JsonSerializer.Deserialize<List<BienTheSanPham>>(bien_the, jsonOptions);
                     if (variants != null)
                     {
                         foreach (var bt in variants)
@@ -753,7 +878,7 @@ namespace WebFashion.Api.Controllers
 
                 if (!string.IsNullOrEmpty(thuoc_tinh))
                 {
-                    var attributes = JsonSerializer.Deserialize<List<ThuocTinhSanPham>>(thuoc_tinh, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var attributes = JsonSerializer.Deserialize<List<ThuocTinhSanPham>>(thuoc_tinh, jsonOptions);
                     if (attributes != null)
                     {
                         foreach (var tt in attributes)
@@ -867,22 +992,23 @@ namespace WebFashion.Api.Controllers
 
                 var mappedList = similarProducts.Select(p => new
                 {
-                    p.Id,
-                    p.TenSanPham,
-                    p.Slug,
-                    p.DanhMucId,
-                    p.NhaCungCapId,
-                    p.MoTaNgan,
-                    p.MoTaDayDu,
-                    p.ThuongHieu,
-                    p.TrangThai,
-                    p.NoiBat,
-                    p.LuotXem,
-                    p.CreatedAt,
-                    p.UpdatedAt,
-                    bien_the = p.BienTheSanPhams,
-                    hinh_anh = p.HinhAnhSanPhams,
-                    danh_gia = p.DanhGiaSanPhams.Select(d => new { d.SoSao })
+                    id = p.Id,
+                    ten_san_pham = p.TenSanPham,
+                    slug = p.Slug,
+                    danh_muc_id = p.DanhMucId,
+                    nha_cung_cap_id = p.NhaCungCapId,
+                    mo_ta_ngan = p.MoTaNgan,
+                    mo_ta_day_du = p.MoTaDayDu,
+                    thuong_hieu = p.ThuongHieu,
+                    trang_thai = p.TrangThai,
+                    noi_bat = p.NoiBat,
+                    luot_xem = p.LuotXem,
+                    luot_mua = p.LuotMua,
+                    created_at = p.CreatedAt,
+                    updated_at = p.UpdatedAt,
+                    bien_the = p.BienTheSanPhams.Select(ProjectVariant),
+                    hinh_anh = p.HinhAnhSanPhams.Select(ProjectImage),
+                    danh_gia = p.DanhGiaSanPhams.Select(d => new { so_sao = d.SoSao })
                 });
 
                 return Ok(mappedList);

@@ -37,6 +37,16 @@ namespace WebFashion.Api.Controllers
                 var list = await _context.PhuongThucThanhToans
                     .Where(p => p.TrangThai == "active")
                     .OrderBy(p => p.Id)
+                    .Select(p => new
+                    {
+                        id = p.Id,
+                        ten_phuong_thuc = p.TenPhuongThuc,
+                        ma = p.Ma,
+                        loai = p.Loai,
+                        logo_url = p.LogoUrl,
+                        phi_thanh_toan = p.PhiThanhToan,
+                        trang_thai = p.TrangThai
+                    })
                     .ToListAsync();
 
                 return Ok(list);
@@ -62,6 +72,16 @@ namespace WebFashion.Api.Controllers
 
                 var list = await _context.PhuongThucThanhToans
                     .OrderByDescending(p => p.Id)
+                    .Select(p => new
+                    {
+                        id = p.Id,
+                        ten_phuong_thuc = p.TenPhuongThuc,
+                        ma = p.Ma,
+                        loai = p.Loai,
+                        logo_url = p.LogoUrl,
+                        phi_thanh_toan = p.PhiThanhToan,
+                        trang_thai = p.TrangThai
+                    })
                     .ToListAsync();
 
                 return Ok(list);
@@ -124,7 +144,7 @@ namespace WebFashion.Api.Controllers
                 _context.PhuongThucThanhToans.Add(newPayment);
                 await _context.SaveChangesAsync();
 
-                return StatusCode(201, new { message = "Thêm thành công", data = newPayment });
+                return StatusCode(201, new { message = "Thêm thành công", data = ProjectPayment(newPayment) });
             }
             catch (Exception ex)
             {
@@ -198,7 +218,7 @@ namespace WebFashion.Api.Controllers
 
                 await _context.SaveChangesAsync();
 
-                return Ok(new { message = "Cập nhật thành công", data = payment });
+                return Ok(new { message = "Cập nhật thành công", data = ProjectPayment(payment) });
             }
             catch (Exception ex)
             {
@@ -279,6 +299,20 @@ namespace WebFashion.Api.Controllers
                 Console.WriteLine($"Lỗi xóa phương thức thanh toán: {ex.Message}");
                 return StatusCode(500, new { message = "Lỗi xóa" });
             }
+        }
+
+        private object ProjectPayment(PhuongThucThanhToan p)
+        {
+            return new
+            {
+                id = p.Id,
+                ten_phuong_thuc = p.TenPhuongThuc,
+                ma = p.Ma,
+                loai = p.Loai,
+                logo_url = p.LogoUrl,
+                phi_thanh_toan = p.PhiThanhToan,
+                trang_thai = p.TrangThai
+            };
         }
     }
 }

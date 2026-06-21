@@ -46,7 +46,7 @@ namespace WebFashion.Api.Controllers
                 _context.DanhMucs.Add(newDanhMuc);
                 await _context.SaveChangesAsync();
 
-                return StatusCode(201, newDanhMuc);
+                return StatusCode(201, ProjectCategory(newDanhMuc));
             }
             catch (Exception ex)
             {
@@ -79,7 +79,7 @@ namespace WebFashion.Api.Controllers
 
                 await _context.SaveChangesAsync();
 
-                return Ok(new { message = "Cập nhật danh mục thành công!", danhMuc });
+                return Ok(new { message = "Cập nhật danh mục thành công!", danhMuc = ProjectCategory(danhMuc) });
             }
             catch (Exception ex)
             {
@@ -165,7 +165,7 @@ namespace WebFashion.Api.Controllers
                     return NotFound(new { message = "Không tìm thấy danh mục!" });
                 }
 
-                return Ok(danhMuc);
+                return Ok(ProjectCategory(danhMuc));
             }
             catch (Exception ex)
             {
@@ -187,11 +187,27 @@ namespace WebFashion.Api.Controllers
                     return NotFound(new { message = "Không tìm thấy danh mục!" });
                 }
 
-                return Ok(danhMuc);
+                return Ok(ProjectCategory(danhMuc));
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Lỗi lấy danh mục theo id: {ex.Message}");
+                return StatusCode(500, new { message = "Lỗi server!" });
+            }
+        }
+
+        // GET: api/sanPham/danhMuc
+        [HttpGet("danhMuc")]
+        public async Task<IActionResult> GetAllDanhMuc()
+        {
+            try
+            {
+                var list = await _context.DanhMucs.ToListAsync();
+                return Ok(list.Select(ProjectCategory));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi lấy tất cả danh mục: {ex.Message}");
                 return StatusCode(500, new { message = "Lỗi server!" });
             }
         }
@@ -207,7 +223,7 @@ namespace WebFashion.Api.Controllers
                     .OrderBy(d => d.ThuTu)
                     .ToListAsync();
                 
-                return Ok(danhMucs);
+                return Ok(danhMucs.Select(ProjectCategory));
             }
             catch (Exception ex)
             {
@@ -258,6 +274,22 @@ namespace WebFashion.Api.Controllers
                 Console.WriteLine($"Lỗi lấy cây danh mục: {ex.Message}");
                 return StatusCode(500, new { message = "Lỗi server khi lấy dữ liệu menu!" });
             }
+        }
+
+        private object ProjectCategory(DanhMuc c)
+        {
+            return new
+            {
+                id = c.Id,
+                ten_danh_muc = c.TenDanhMuc,
+                slug = c.Slug,
+                danh_muc_cha_id = c.DanhMucChaId,
+                hinh_anh = c.HinhAnh,
+                mo_ta = c.MoTa,
+                thu_tu = c.ThuTu,
+                trang_thai = c.TrangThai,
+                hien_thi_sidebar = c.HienThiSidebar
+            };
         }
     }
 }
