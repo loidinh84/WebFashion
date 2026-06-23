@@ -80,7 +80,7 @@ namespace WebFashion.Api.Services
 
         private async Task<string> CallGeminiWithFallbackAndRetryAsync(object payload, string initialModel)
         {
-            var modelsToTry = new[] { initialModel, "gemini-2.0-flash" };
+            var modelsToTry = new[] { initialModel, "gemini-2.0-flash-lite", "gemini-2.0-flash" };
             Exception? lastError = null;
 
             foreach (var model in modelsToTry)
@@ -92,14 +92,14 @@ namespace WebFashion.Api.Services
                 catch (Exception ex)
                 {
                     lastError = ex;
-                    Console.WriteLine($"[Gemini Error for model {model}]: {ex.Message}. Trừng thử model tiếp theo...");
+                    Console.WriteLine($"[Gemini Error for model {model}]: {ex.Message}. Thử model tiếp theo...");
                 }
             }
 
             throw lastError ?? new Exception("Tất cả các model Gemini đều thất bại.");
         }
 
-        public async Task<string> ChatWithAIAsync(string systemInstruction, List<GeminiMessage> history, string message, string model = "gemini-2.5-flash")
+        public async Task<string> ChatWithAIAsync(string systemInstruction, List<GeminiMessage> history, string message, string model = "gemini-3.1-flash-lite")
         {
             // Build the contents list
             var contents = new List<object>();
@@ -138,7 +138,7 @@ namespace WebFashion.Api.Services
             return await CallGeminiWithFallbackAndRetryAsync(payload, model);
         }
 
-        public async Task<string> GenerateContentAsync(string systemInstruction, string prompt, string model = "gemini-2.5-flash")
+        public async Task<string> GenerateContentAsync(string systemInstruction, string prompt, string model = "gemini-3.1-flash-lite")
         {
             var contents = new List<object>
             {

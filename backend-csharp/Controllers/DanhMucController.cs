@@ -19,28 +19,54 @@ namespace WebFashion.Api.Controllers
             _context = context;
         }
 
+        public class DanhMucDto
+        {
+            public string? ten_danh_muc { get; set; }
+            public string? slug { get; set; }
+            public long? danh_muc_cha_id { get; set; }
+            public string? hinh_anh { get; set; }
+            public string? mo_ta { get; set; }
+            public int? thu_tu { get; set; }
+            public string? trang_thai { get; set; }
+            public bool? hien_thi_sidebar { get; set; }
+        }
+
         // 1. THÊM DANH MỤC MỚI
         // POST: api/sanPham/danhMuc
         [HttpPost("danhMuc")]
-        public async Task<IActionResult> CreateDanhMuc([FromBody] DanhMuc dto)
+        public async Task<IActionResult> CreateDanhMuc([FromBody] DanhMucDto dto)
         {
             try
             {
-                if (string.IsNullOrEmpty(dto.TenDanhMuc) || string.IsNullOrEmpty(dto.Slug))
+                if (string.IsNullOrEmpty(dto.ten_danh_muc) || string.IsNullOrEmpty(dto.slug))
                 {
                     return BadRequest(new { message = "Thiếu thông tin tên danh mục hoặc slug!" });
                 }
 
+                // Kiểm tra trùng lặp tên hoặc slug
+                var duplicate = await _context.DanhMucs
+                    .FirstOrDefaultAsync(d => d.TenDanhMuc.ToLower() == dto.ten_danh_muc.Trim().ToLower() 
+                                           || d.Slug.ToLower() == dto.slug.Trim().ToLower());
+
+                if (duplicate != null)
+                {
+                    if (duplicate.TenDanhMuc.Equals(dto.ten_danh_muc.Trim(), StringComparison.OrdinalIgnoreCase))
+                    {
+                        return BadRequest(new { message = "Tên danh mục đã tồn tại!" });
+                    }
+                    return BadRequest(new { message = "Slug danh mục đã tồn tại!" });
+                }
+
                 var newDanhMuc = new DanhMuc
                 {
-                    TenDanhMuc = dto.TenDanhMuc,
-                    Slug = dto.Slug,
-                    DanhMucChaId = dto.DanhMucChaId > 0 ? dto.DanhMucChaId : null,
-                    MoTa = dto.MoTa,
-                    ThuTu = dto.ThuTu,
-                    TrangThai = string.IsNullOrEmpty(dto.TrangThai) ? "active" : dto.TrangThai,
-                    HienThiSidebar = dto.HienThiSidebar,
-                    HinhAnh = dto.HinhAnh
+                    TenDanhMuc = dto.ten_danh_muc.Trim(),
+                    Slug = dto.slug.Trim(),
+                    DanhMucChaId = dto.danh_muc_cha_id > 0 ? dto.danh_muc_cha_id : null,
+                    MoTa = dto.mo_ta,
+                    ThuTu = dto.thu_tu ?? 0,
+                    TrangThai = string.IsNullOrEmpty(dto.trang_thai) ? "active" : dto.trang_thai,
+                    HienThiSidebar = dto.hien_thi_sidebar ?? true,
+                    HinhAnh = dto.hinh_anh
                 };
 
                 _context.DanhMucs.Add(newDanhMuc);
@@ -58,24 +84,44 @@ namespace WebFashion.Api.Controllers
         // 2. CẬP NHẬT DANH MỤC
         // PUT: api/sanPham/danhMuc/{id}
         [HttpPut("danhMuc/{id}")]
-        public async Task<IActionResult> UpdateDanhMuc(long id, [FromBody] DanhMuc dto)
+        public async Task<IActionResult> UpdateDanhMuc(long id, [FromBody] DanhMucDto dto)
         {
             try
             {
+                if (string.IsNullOrEmpty(dto.ten_danh_muc) || string.IsNullOrEmpty(dto.slug))
+                {
+                    return BadRequest(new { message = "Thiếu thông tin tên danh mục hoặc slug!" });
+                }
+
                 var danhMuc = await _context.DanhMucs.FindAsync(id);
                 if (danhMuc == null)
                 {
                     return NotFound(new { message = "Không tìm thấy danh mục!" });
                 }
 
-                danhMuc.TenDanhMuc = dto.TenDanhMuc;
-                danhMuc.Slug = dto.Slug;
-                danhMuc.DanhMucChaId = dto.DanhMucChaId > 0 ? dto.DanhMucChaId : null;
-                danhMuc.MoTa = dto.MoTa;
-                danhMuc.ThuTu = dto.ThuTu;
-                danhMuc.TrangThai = dto.TrangThai;
-                danhMuc.HienThiSidebar = dto.HienThiSidebar;
-                danhMuc.HinhAnh = dto.HinhAnh;
+                // Kiểm tra trùng lặp tên hoặc slug (ngoại trừ chính nó)
+                var duplicate = await _context.DanhMucs
+                    .FirstOrDefaultAsync(d => d.Id != id && 
+                                           (d.TenDanhMuc.ToLower() == dto.ten_danh_muc.Trim().ToLower() 
+                                            || d.Slug.ToLower() == dto.slug.Trim().ToLower()));
+
+                if (duplicate != null)
+                {
+                    if (duplicate.TenDanhMuc.Equals(dto.ten_danh_muc.Trim(), StringComparison.OrdinalIgnoreCase))
+                    {
+                        return BadRequest(new { message = "Tên danh mục đã tồn tại!" });
+                    }
+                    return BadRequest(new { message = "Slug danh mục đã tồn tại!" });
+                }
+
+                danhMuc.TenDanhMuc = dto.ten_danh_muc.Trim();
+                danhMuc.Slug = dto.slug.Trim();
+                danhMuc.DanhMucChaId = dto.danh_muc_cha_id > 0 ? dto.danh_muc_cha_id : null;
+                danhMuc.MoTa = dto.mo_ta;
+                danhMuc.ThuTu = dto.thu_tu ?? danhMuc.ThuTu;
+                danhMuc.TrangThai = string.IsNullOrEmpty(dto.trang_thai) ? danhMuc.TrangThai : dto.trang_thai;
+                danhMuc.HienThiSidebar = dto.hien_thi_sidebar ?? danhMuc.HienThiSidebar;
+                danhMuc.HinhAnh = dto.hinh_anh ?? danhMuc.HinhAnh;
 
                 await _context.SaveChangesAsync();
 

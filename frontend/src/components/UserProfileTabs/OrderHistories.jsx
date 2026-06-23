@@ -5,6 +5,7 @@ import * as Icons from "../../assets/icons/index";
 import DatePicker, { registerLocale } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { vi } from "date-fns/locale";
+import { addToCart } from "../../utils/cartHelper";
 
 registerLocale("vi", vi);
 
@@ -451,9 +452,7 @@ const OrdersTab = ({ profileData, navigate }) => {
                         order.trang_thai === "cancelled" ||
                         order.trang_thai === "refunded") && (
                         <button
-                          onClick={() => {
-                            const currentCart =
-                              JSON.parse(localStorage.getItem("cart")) || [];
+                          onClick={async () => {
                             const itemsToRebuy = order.chi_tiet.map((prod) => ({
                               id: prod.bien_the?.san_pham_id,
                               variantId: prod.bien_the_id,
@@ -467,20 +466,9 @@ const OrdersTab = ({ profileData, navigate }) => {
                               mau_sac: prod.bien_the?.mau_sac || "",
                               selected: true,
                             }));
-                            itemsToRebuy.forEach((newItem) => {
-                              const existingItem = currentCart.find(
-                                (item) => item.variantId === newItem.variantId,
-                              );
-                              if (existingItem) {
-                                existingItem.so_luong += newItem.so_luong;
-                              } else {
-                                currentCart.push(newItem);
-                              }
-                            });
-                            localStorage.setItem(
-                              "cart",
-                              JSON.stringify(currentCart),
-                            );
+                            for (const item of itemsToRebuy) {
+                              await addToCart(item, 1);
+                            }
                             toast.success("Đã thêm sản phẩm vào giỏ hàng!");
                             navigate("/cart");
                           }}

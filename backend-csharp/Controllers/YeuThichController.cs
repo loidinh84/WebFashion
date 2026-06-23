@@ -52,22 +52,22 @@ namespace WebFashion.Api.Controllers
                 // Format the returned data to match standard JSON serialization
                 var formatted = wishlist.Select(y => new
                 {
-                    y.Id,
-                    y.TaiKhoanId,
-                    y.SanPhamId,
-                    y.CreatedAt,
+                    id = y.Id,
+                    tai_khoan_id = y.TaiKhoanId,
+                    san_pham_id = y.SanPhamId,
+                    created_at = y.CreatedAt,
                     san_pham = new
                     {
-                        y.SanPham.Id,
-                        y.SanPham.TenSanPham,
-                        y.SanPham.Slug,
-                        y.SanPham.MoTaNgan,
-                        y.SanPham.MoTaDayDu,
-                        y.SanPham.ThuongHieu,
-                        y.SanPham.TrangThai,
-                        y.SanPham.NoiBat,
-                        y.SanPham.LuotXem,
-                        y.SanPham.LuotMua,
+                        id = y.SanPham.Id,
+                        ten_san_pham = y.SanPham.TenSanPham,
+                        slug = y.SanPham.Slug,
+                        mo_ta_ngan = y.SanPham.MoTaNgan,
+                        mo_ta_day_du = y.SanPham.MoTaDayDu,
+                        thuong_hieu = y.SanPham.ThuongHieu,
+                        trang_thai = y.SanPham.TrangThai,
+                        noi_bat = y.SanPham.NoiBat,
+                        luot_xem = y.SanPham.LuotXem,
+                        luot_mua = y.SanPham.LuotMua,
                         hinh_anh = y.SanPham.HinhAnhSanPhams.Select(img => new
                         {
                             id = img.Id,

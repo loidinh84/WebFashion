@@ -6,8 +6,10 @@ import ConfirmModal from "./ConfirmModal";
 import { useReactToPrint } from "react-to-print";
 import DynamicPrintTemplate from "../../components/DynamicPrintTemplate";
 import toast, { Toaster } from "react-hot-toast";
+import Swal from "sweetalert2";
 
 const STATUS_MAP = {
+  draft: { label: "Phiếu tạm", color: "bg-yellow-100 text-yellow-700 border-yellow-200" },
   balanced: { label: "Đã cân bằng kho", color: "bg-green-100 text-green-700 border-green-200" },
   cancelled: { label: "Đã hủy", color: "bg-red-100 text-red-500 border-red-200" },
 };
@@ -70,7 +72,17 @@ const InventoryCheck = () => {
     finally { setIsLoading(false); }
   }, [searchTerm, filterStatus, filterDateFrom, filterDateTo]);
 
-  useEffect(() => { fetchData(1); setPage(1); }, [fetchData]);
+  useEffect(() => {
+    if (page === 1) {
+      fetchData(1);
+    } else {
+      setPage(1);
+    }
+  }, [fetchData]);
+
+  useEffect(() => {
+    fetchData(page);
+  }, [page]);
 
   // Fetch store info for printing
   useEffect(() => {
@@ -111,6 +123,50 @@ const InventoryCheck = () => {
       if (expandedId === confirmModal.checkId) { setExpandedId(null); setExpandedDetail(null); }
     } catch { toast.error("Lỗi khi hủy phiếu!"); }
     setConfirmModal({ isOpen: false, checkId: null });
+  };
+
+  // ── Complete (Cân bằng kho) ─────────────────────────────────────────────
+  const handleComplete = async (id, e) => {
+    e.stopPropagation();
+    Swal.fire({
+      title: "Cân bằng kho",
+      text: "Bạn có chắc chắn muốn cân bằng kho cho phiếu kiểm này? Tồn kho thực tế của các sản phẩm sẽ được cập nhật.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#3b82f6",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Cân bằng",
+      cancelButtonText: "Bỏ qua",
+      customClass: {
+        popup: 'rounded-xl font-sans',
+        title: 'text-lg font-bold text-gray-800',
+        htmlContainer: 'text-sm text-gray-600',
+      }
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const res = await fetch(`${BASE_URL}/api/kiem-kho/${id}/complete`, {
+            method: "PATCH",
+            headers: { Authorization: `Bearer ${getToken()}` },
+          });
+          const json = res.ok ? {} : await res.json();
+          if (res.ok) {
+            toast.success("Cân bằng kho thành công!");
+            fetchData(page);
+            if (expandedId === id) {
+              const detailRes = await fetch(`${BASE_URL}/api/kiem-kho/${id}`, {
+                headers: { Authorization: `Bearer ${getToken()}` },
+              });
+              setExpandedDetail(await detailRes.json());
+            }
+          } else {
+            toast.error(json.message || "Lỗi khi cân bằng kho!");
+          }
+        } catch {
+          toast.error("Lỗi kết nối máy chủ!");
+        }
+      }
+    });
   };
 
   const handlePrint = useReactToPrint({
@@ -297,6 +353,12 @@ const InventoryCheck = () => {
 
                                   <div className="flex justify-between items-center mt-4">
                                     <div className="flex gap-2">
+                                      {expandedDetail.trang_thai === "draft" && (
+                                        <button onClick={(e) => handleComplete(expandedDetail.id, e)}
+                                          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded text-sm font-semibold cursor-pointer transition flex items-center gap-1.5">
+                                          <Icons.Tick className="w-4 h-4" /> Cân bằng kho
+                                        </button>
+                                      )}
                                       {expandedDetail.trang_thai !== "cancelled" && (
                                         <button onClick={() => setConfirmModal({ isOpen: true, checkId: expandedDetail.id })}
                                           className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded text-sm font-semibold cursor-pointer transition flex items-center gap-1.5">

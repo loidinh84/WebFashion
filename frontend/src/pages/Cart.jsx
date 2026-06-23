@@ -399,7 +399,7 @@ const Cart = () => {
                   <div className="text-[12px] lg:text-sm text-gray-500 leading-tight">
                     Tạm tính:
                   </div>
-                  <div className="text-base lg:text2xl font-bold text-[#e30019] leading-tight">
+                  <div className="text-base lg:text-2xl font-bold text-[#e30019] leading-tight">
                     {formatPrice(
                       storeConfig?.lam_tron_tien
                         ? Math.round(totalAmount / 1000) * 1000

@@ -99,8 +99,8 @@ const InventoryCheckCreate = () => {
         sku: bt.sku,
         name: bt.san_pham?.ten_san_pham || bt.name || "Sản phẩm",
         variant: [bt.mau_sac, bt.dung_luong, bt.ram].filter(Boolean).join(" / "),
-        so_luong_he_thong: bt.ton_kho ?? bt.so_luong_he_thong ?? 0,
-        so_luong_thuc_te: bt.ton_kho ?? bt.so_luong_he_thong ?? 0,
+        so_luong_he_thong: bt.ton_kho ?? bt.tonKho ?? bt.so_luong_he_thong ?? 0,
+        so_luong_thuc_te: bt.ton_kho ?? bt.tonKho ?? bt.so_luong_he_thong ?? 0,
       }];
     });
     setSearchQuery("");
@@ -212,7 +212,7 @@ const InventoryCheckCreate = () => {
                       <div className="font-semibold text-gray-800 text-sm">{bt.san_pham?.ten_san_pham || "Sản phẩm"}</div>
                       <div className="text-xs text-gray-400">
                         SKU: {bt.sku || "—"}{bt.mau_sac && ` · ${bt.mau_sac}`}
-                        <span className="ml-2 text-blue-500 font-medium">Tồn: {bt.ton_kho ?? 0}</span>
+                        <span className="ml-2 text-blue-500 font-medium">Tồn: {bt.ton_kho ?? bt.tonKho ?? 0}</span>
                       </div>
                     </button>
                   ))}
@@ -342,7 +342,7 @@ const InventoryCheckCreate = () => {
               className="w-full py-2 bg-blue-600 text-white rounded font-bold hover:bg-blue-700 transition cursor-pointer text-sm disabled:opacity-60 flex items-center justify-center gap-1.5">
               <Icons.Tick className="w-4 h-4" /> Cân bằng kho
             </button>
-            <button onClick={() => handleSave("cancelled")} disabled={saving}
+            <button onClick={() => handleSave("draft")} disabled={saving}
               className="w-full py-2 bg-white border border-gray-300 text-gray-700 rounded font-bold hover:bg-gray-50 transition cursor-pointer text-sm disabled:opacity-60 flex items-center justify-center gap-1.5">
               <Icons.Inventory className="w-4 h-4" /> Lưu tạm
             </button>

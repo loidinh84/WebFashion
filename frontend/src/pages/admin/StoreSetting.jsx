@@ -159,13 +159,17 @@ function StoreSettings() {
   }, []);
 
   const saveToDatabase = async (payload) => {
+    const formData = new FormData();
+    Object.keys(payload).forEach((key) => {
+      if (payload[key] !== undefined && payload[key] !== null) {
+        formData.append(key, payload[key]);
+      }
+    });
+
     const response = await fetch(`${API_URL}/api/store-settings`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeader(),
-      },
-      body: JSON.stringify(payload),
+      headers: getAuthHeader(),
+      body: formData,
     });
     return response.json();
   };

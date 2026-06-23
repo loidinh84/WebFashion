@@ -56,9 +56,9 @@ const TheThanhVienList = () => {
     if (item) {
       setForm({
         ten_hang: item.ten_hang || "",
-        muc_chi_tieu_tu: item.muc_chi_tieu_tu || "",
-        ty_le_giam_gia: item.ty_le_giam_gia || "",
-        diem_thuong_them: item.diem_thuong_them || "",
+        muc_chi_tieu_tu: item.muc_chi_tieu_tu !== undefined && item.muc_chi_tieu_tu !== null ? item.muc_chi_tieu_tu : 0,
+        ty_le_giam_gia: item.ty_le_giam_gia !== undefined && item.ty_le_giam_gia !== null ? item.ty_le_giam_gia : 0,
+        diem_thuong_them: item.diem_thuong_them !== undefined && item.diem_thuong_them !== null ? item.diem_thuong_them : 0,
         mau_the: item.mau_the || "#2563eb",
         mo_ta_quyen_loi: item.mo_ta_quyen_loi || "",
       });
@@ -99,13 +99,20 @@ const TheThanhVienList = () => {
         : `${BASE_URL}/api/memberships`;
       const method = editingItem ? "PUT" : "POST";
 
+      const dataToSend = {
+        ...form,
+        muc_chi_tieu_tu: Number(form.muc_chi_tieu_tu) || 0,
+        ty_le_giam_gia: Number(form.ty_le_giam_gia) || 0,
+        diem_thuong_them: Number(form.diem_thuong_them) || 0,
+      };
+
       const res = await fetch(url, {
         method,
         headers: {
           "Content-Type": "application/json",
           ...getAuthHeader(),
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify(dataToSend),
       });
 
       if (res.ok) {

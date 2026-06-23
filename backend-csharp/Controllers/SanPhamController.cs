@@ -594,7 +594,8 @@ namespace WebFashion.Api.Controllers
 
                 var jsonOptions = new JsonSerializerOptions
                 {
-                    PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+                    PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+                    NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString
                 };
 
                 // Save variants
@@ -836,7 +837,8 @@ namespace WebFashion.Api.Controllers
 
                 var jsonOptions = new JsonSerializerOptions
                 {
-                    PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+                    PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+                    NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString
                 };
 
                 // Handle variants updates
@@ -1072,32 +1074,37 @@ namespace WebFashion.Api.Controllers
 
                     mappedReviews.Add(new
                     {
-                        r.Id,
-                        r.SanPhamId,
-                        r.TaiKhoanId,
-                        r.DonHangId,
-                        r.SoSao,
-                        r.NoiDung,
-                        r.HinhAnh,
-                        r.TrangThai,
-                        r.CreatedAt,
-                        r.ParentId,
+                        id = r.Id,
+                        san_pham_id = r.SanPhamId,
+                        tai_khoan_id = r.TaiKhoanId,
+                        don_hang_id = r.DonHangId,
+                        so_sao = r.SoSao,
+                        noi_dung = r.NoiDung,
+                        hinh_anh = r.HinhAnh,
+                        trang_thai = r.TrangThai,
+                        created_at = r.CreatedAt,
+                        parent_id = r.ParentId,
                         total_likes = totalLikes,
                         total_dislikes = totalDislikes,
                         user_interaction = userInteraction,
-                        nguoi_dung = r.TaiKhoan != null ? new { r.TaiKhoan.HoTen, r.TaiKhoan.AnhDaiDien, r.TaiKhoan.VaiTro } : null,
+                        nguoi_dung = r.TaiKhoan != null ? new
+                        {
+                            ho_ten = r.TaiKhoan.HoTen,
+                            anh_dai_dien = r.TaiKhoan.AnhDaiDien,
+                            vai_tro = r.TaiKhoan.VaiTro
+                        } : null,
                         don_hang = r.DonHang != null ? new
                         {
-                            r.DonHang.Id,
+                            id = r.DonHang.Id,
                             chi_tiet = r.DonHang.ChiTietDonHangs.Select(ct => new
                             {
-                                ct.Id,
+                                id = ct.Id,
                                 bien_the = ct.BienThe != null ? new
                                 {
-                                    ct.BienThe.Id,
-                                    ct.BienThe.MauSac,
-                                    ct.BienThe.DungLuong,
-                                    ct.BienThe.Ram
+                                    id = ct.BienThe.Id,
+                                    mau_sac = ct.BienThe.MauSac,
+                                    dung_luong = ct.BienThe.DungLuong,
+                                    ram = ct.BienThe.Ram
                                 } : null
                             })
                         } : null
@@ -1175,11 +1182,7 @@ namespace WebFashion.Api.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> CreateReview(
             long id,
-            [FromForm] string? so_sao,
-            [FromForm] string? noi_dung,
-            [FromForm] string? don_hang_id,
-            [FromForm] string? parent_id,
-            List<IFormFile> hinh_anh)
+            [FromForm] ReviewCreateDto dto)
         {
             try
             {
@@ -1189,29 +1192,29 @@ namespace WebFashion.Api.Controllers
                     return Unauthorized(new { message = "Chưa xác thực người dùng!" });
                 }
 
-                var cleanNoiDung = string.IsNullOrEmpty(noi_dung) || noi_dung == "undefined" || string.IsNullOrWhiteSpace(noi_dung)
+                var cleanNoiDung = string.IsNullOrEmpty(dto.NoiDung) || dto.NoiDung == "undefined" || string.IsNullOrWhiteSpace(dto.NoiDung)
                     ? "Sản phẩm rất tốt!"
-                    : noi_dung.Trim();
+                    : dto.NoiDung.Trim();
 
                 long? cleanParentId = null;
-                if (long.TryParse(parent_id, out var parsedParentId)) cleanParentId = parsedParentId;
+                if (dto.ParentId.HasValue) cleanParentId = dto.ParentId;
 
-                byte? cleanSoSao = null;
+                int? cleanSoSao = null;
                 if (!cleanParentId.HasValue)
                 {
-                    cleanSoSao = byte.TryParse(so_sao, out var parsedSoSao) ? parsedSoSao : (byte)5;
+                    cleanSoSao = dto.SoSao ?? 5;
                 }
 
                 long? cleanDonHangId = null;
-                if (long.TryParse(don_hang_id, out var parsedDonHangId)) cleanDonHangId = parsedDonHangId;
+                if (dto.DonHangId.HasValue) cleanDonHangId = dto.DonHangId;
 
                 var uploadedFilesList = new List<string>();
-                if (hinh_anh != null && hinh_anh.Count > 0)
+                if (dto.HinhAnh != null && dto.HinhAnh.Count > 0)
                 {
                     var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
                     if (!Directory.Exists(uploadsDir)) Directory.CreateDirectory(uploadsDir);
 
-                    foreach (var file in hinh_anh)
+                    foreach (var file in dto.HinhAnh)
                     {
                         var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
                         var filePath = Path.Combine(uploadsDir, uniqueFileName);
@@ -1232,7 +1235,7 @@ namespace WebFashion.Api.Controllers
                     TaiKhoanId = userId,
                     SoSao = cleanSoSao,
                     NoiDung = cleanNoiDung,
-                    DonHangId = cleanDonHangId ?? 0,
+                    DonHangId = cleanDonHangId,
                     HinhAnh = imageString,
                     TrangThai = "approved",
                     ParentId = cleanParentId,

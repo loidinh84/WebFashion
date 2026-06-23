@@ -217,7 +217,7 @@ const InventoryImport = () => {
         ten_hang: bt.san_pham?.ten_san_pham || "Sản phẩm",
         bien_the_mo_ta: [bt.mau_sac, bt.dung_luong, bt.ram].filter(Boolean).join(" / "),
         so_luong: 1,
-        don_gia_nhap: 0,
+        don_gia_nhap: bt.gia_goc ?? bt.giaGoc ?? 0,
         giam_gia: 0,
       }];
     });

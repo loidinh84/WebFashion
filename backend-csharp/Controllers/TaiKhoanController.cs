@@ -87,22 +87,22 @@ namespace WebFashion.Api.Controllers
                 var user = await _context.TaiKhoans
                     .Select(u => new
                     {
-                        u.Id,
-                        u.HoTen,
-                        u.Email,
-                        u.SoDienThoai,
-                        u.AnhDaiDien,
-                        u.VaiTro,
-                        u.TrangThai,
-                        u.NgaySinh,
-                        u.GioiTinh,
-                        u.CreatedAt,
-                        u.UpdatedAt,
-                        u.TheThanhVienId,
-                        u.TongChiTieu,
-                        u.DiemTichLuy
+                        id = u.Id,
+                        ho_ten = u.HoTen,
+                        email = u.Email,
+                        so_dien_thoai = u.SoDienThoai,
+                        anh_dai_dien = u.AnhDaiDien,
+                        vai_tro = u.VaiTro,
+                        trang_thai = u.TrangThai,
+                        ngay_sinh = u.NgaySinh,
+                        gioi_tinh = u.GioiTinh,
+                        created_at = u.CreatedAt,
+                        updated_at = u.UpdatedAt,
+                        the_thanh_vien_id = u.TheThanhVienId,
+                        tong_chi_tieu = u.TongChiTieu,
+                        diem_tich_luy = u.DiemTichLuy
                     })
-                    .FirstOrDefaultAsync(u => u.Id == id);
+                    .FirstOrDefaultAsync(u => u.id == id);
 
                 if (user == null)
                 {
@@ -127,33 +127,33 @@ namespace WebFashion.Api.Controllers
                     .Include(u => u.TheThanhVien)
                     .Select(u => new
                     {
-                        u.Id,
-                        u.HoTen,
-                        u.Email,
-                        u.SoDienThoai,
-                        u.AnhDaiDien,
-                        u.VaiTro,
-                        u.TrangThai,
-                        u.NgaySinh,
-                        u.GioiTinh,
-                        u.CreatedAt,
-                        u.UpdatedAt,
-                        u.TheThanhVienId,
-                        u.TongChiTieu,
-                        u.DiemTichLuy,
+                        id = u.Id,
+                        ho_ten = u.HoTen,
+                        email = u.Email,
+                        so_dien_thoai = u.SoDienThoai,
+                        anh_dai_dien = u.AnhDaiDien,
+                        vai_tro = u.VaiTro,
+                        trang_thai = u.TrangThai,
+                        ngay_sinh = u.NgaySinh,
+                        gioi_tinh = u.GioiTinh,
+                        created_at = u.CreatedAt,
+                        updated_at = u.UpdatedAt,
+                        the_thanh_vien_id = u.TheThanhVienId,
+                        tong_chi_tieu = u.TongChiTieu,
+                        diem_tich_luy = u.DiemTichLuy,
                         hang_thanh_vien = u.TheThanhVien != null ? new
                         {
-                            u.TheThanhVien.Id,
-                            u.TheThanhVien.TenHang,
-                            u.TheThanhVien.MucChiTieuTu,
-                            u.TheThanhVien.MucChiTieuDen,
-                            u.TheThanhVien.TyLeGiamGia,
-                            u.TheThanhVien.DiemThuongThem,
-                            u.TheThanhVien.MauThe,
-                            u.TheThanhVien.MoTaQuyenLoi
+                            id = u.TheThanhVien.Id,
+                            ten_hang = u.TheThanhVien.TenHang,
+                            muc_chi_tieu_tu = u.TheThanhVien.MucChiTieuTu,
+                            muc_chi_tieu_den = u.TheThanhVien.MucChiTieuDen,
+                            ty_le_giam_gia = u.TheThanhVien.TyLeGiamGia,
+                            diem_thuong_them = u.TheThanhVien.DiemThuongThem,
+                            mau_the = u.TheThanhVien.MauThe,
+                            mo_ta_quyen_loi = u.TheThanhVien.MoTaQuyenLoi
                         } : null
                     })
-                    .FirstOrDefaultAsync(u => u.Id == id);
+                    .FirstOrDefaultAsync(u => u.id == id);
 
                 if (user == null)
                 {
@@ -172,13 +172,78 @@ namespace WebFashion.Api.Controllers
 
                 var allMemberships = await _context.TheThanhViens
                     .OrderBy(m => m.MucChiTieuTu)
+                    .Select(m => new
+                    {
+                        id = m.Id,
+                        ten_hang = m.TenHang,
+                        muc_chi_tieu_tu = m.MucChiTieuTu,
+                        muc_chi_tieu_den = m.MucChiTieuDen,
+                        ty_le_giam_gia = m.TyLeGiamGia,
+                        diem_thuong_them = m.DiemThuongThem,
+                        mau_the = m.MauThe,
+                        mo_ta_quyen_loi = m.MoTaQuyenLoi
+                    })
                     .ToListAsync();
+
+                var mappedOrders = allOrders.Select(o => new
+                {
+                    id = o.Id,
+                    ma_don_hang = o.MaDonHang,
+                    tai_khoan_id = o.TaiKhoanId,
+                    dia_chi_id = o.DiaChiId,
+                    don_vi_vc_id = o.DonViVcId,
+                    phi_van_chuyen = o.PhiVanChuyen,
+                    tien_giam_gia = o.TienGiamGia,
+                    tong_tien_hang = o.TongTienHang,
+                    tong_thanh_toan = o.TongThanhToan,
+                    trang_thai = o.TrangThai,
+                    ghi_chu = o.GhiChu,
+                    created_at = o.CreatedAt,
+                    updated_at = o.UpdatedAt,
+                    chi_tiet = o.ChiTietDonHangs.Select(ct => new
+                    {
+                        id = ct.Id,
+                        don_hang_id = ct.DonHangId,
+                        bien_the_id = ct.BienTheId,
+                        ten_sp_luc_mua = ct.TenSpLucMua,
+                        sku_luc_mua = ct.SkuLucMua,
+                        so_luong = ct.SoLuong,
+                        don_gia = ct.DonGia,
+                        thanh_tien = ct.ThanhTien,
+                        bien_the = ct.BienThe != null ? new
+                        {
+                            id = ct.BienThe.Id,
+                            mau_sac = ct.BienThe.MauSac,
+                            dung_luong = ct.BienThe.DungLuong,
+                            ram = ct.BienThe.Ram,
+                            gia_ban = ct.BienThe.GiaBan,
+                            san_pham_id = ct.BienThe.SanPhamId,
+                            san_pham = ct.BienThe.SanPham != null ? new
+                            {
+                                id = ct.BienThe.SanPham.Id,
+                                ten_san_pham = ct.BienThe.SanPham.TenSanPham,
+                                hinh_anh = ct.BienThe.SanPham.HinhAnhSanPhams.Select(img => new
+                                {
+                                    id = img.Id,
+                                    url_anh = img.UrlAnh,
+                                    la_anh_chinh = img.LaAnhChinh
+                                }).ToList()
+                            } : null
+                        } : null
+                    }).ToList(),
+                    danh_gia = o.DanhGiaSanPhams.Select(dg => new
+                    {
+                        id = dg.Id,
+                        so_sao = dg.SoSao,
+                        noi_dung = dg.NoiDung
+                    }).ToList()
+                }).ToList();
 
                 return Ok(new
                 {
                     userInfo = user,
-                    orderCount = allOrders.Count,
-                    allOrders = allOrders,
+                    orderCount = mappedOrders.Count,
+                    allOrders = mappedOrders,
                     allMemberships = allMemberships
                 });
             }
@@ -567,8 +632,21 @@ namespace WebFashion.Api.Controllers
                     .Where(d => d.TaiKhoanId == id)
                     .OrderByDescending(d => d.LaMacDinh)
                     .ToListAsync();
+
+                var mappedList = diaChiList.Select(d => new
+                {
+                    id = d.Id,
+                    tai_khoan_id = d.TaiKhoanId,
+                    ho_ten_nguoi_nhan = d.HoTenNguoiNhan,
+                    so_dien_thoai = d.SoDienThoai,
+                    dia_chi_cu_the = d.DiaChiCuThe,
+                    phuong_xa = d.PhuongXa,
+                    quan_huyen = d.QuanHuyen,
+                    tinh_thanh = d.TinhThanh,
+                    la_mac_dinh = d.LaMacDinh
+                }).ToList();
                 
-                return Ok(diaChiList);
+                return Ok(mappedList);
             }
             catch (Exception)
             {
@@ -578,15 +656,24 @@ namespace WebFashion.Api.Controllers
 
         // POST: api/taiKhoan/addAddress
         [HttpPost("addAddress")]
-        public async Task<IActionResult> AddAddress([FromBody] DiaChiGiaoHang addressDto)
+        public async Task<IActionResult> AddAddress([FromBody] System.Text.Json.JsonElement body)
         {
             try
             {
-                if (addressDto.LaMacDinh)
+                long taiKhoanId = body.GetProperty("tai_khoan_id").GetInt64();
+                string hoTenNguoiNhan = body.GetProperty("ho_ten_nguoi_nhan").GetString() ?? "";
+                string soDienThoai = body.GetProperty("so_dien_thoai").GetString() ?? "";
+                string tinhThanh = body.GetProperty("tinh_thanh").GetString() ?? "";
+                string quanHuyen = body.TryGetProperty("quan_huyen", out var qh) ? (qh.GetString() ?? "") : "";
+                string phuongXa = body.TryGetProperty("phuong_xa", out var px) ? (px.GetString() ?? "") : "";
+                string diaChiCuThe = body.GetProperty("dia_chi_cu_the").GetString() ?? "";
+                bool laMacDinh = body.TryGetProperty("la_mac_dinh", out var lmd) && lmd.GetBoolean();
+
+                if (laMacDinh)
                 {
                     // Reset all other addresses of this user to not default
                     var otherAddresses = await _context.DiaChiGiaoHangs
-                        .Where(d => d.TaiKhoanId == addressDto.TaiKhoanId)
+                        .Where(d => d.TaiKhoanId == taiKhoanId)
                         .ToListAsync();
                     
                     foreach (var addr in otherAddresses)
@@ -595,20 +682,33 @@ namespace WebFashion.Api.Controllers
                     }
                 }
 
+                var addressDto = new DiaChiGiaoHang
+                {
+                    TaiKhoanId = taiKhoanId,
+                    HoTenNguoiNhan = hoTenNguoiNhan,
+                    SoDienThoai = soDienThoai,
+                    TinhThanh = tinhThanh,
+                    QuanHuyen = quanHuyen,
+                    PhuongXa = phuongXa,
+                    DiaChiCuThe = diaChiCuThe,
+                    LaMacDinh = laMacDinh
+                };
+
                 _context.DiaChiGiaoHangs.Add(addressDto);
                 await _context.SaveChangesAsync();
 
                 return StatusCode(201, new { message = "Đã thêm địa chỉ!" });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine($"Error AddAddress: {ex.Message}");
                 return StatusCode(500, new { message = "Lỗi server khi thêm địa chỉ!" });
             }
         }
 
         // PUT: api/taiKhoan/diachi/{addressId}
         [HttpPut("diachi/{addressId}")]
-        public async Task<IActionResult> UpdateAddress(long addressId, [FromBody] DiaChiGiaoHang updatedAddress)
+        public async Task<IActionResult> UpdateAddress(long addressId, [FromBody] System.Text.Json.JsonElement body)
         {
             try
             {
@@ -618,7 +718,15 @@ namespace WebFashion.Api.Controllers
                     return NotFound(new { message = "Không tìm thấy địa chỉ!" });
                 }
 
-                if (updatedAddress.LaMacDinh)
+                string hoTenNguoiNhan = body.GetProperty("ho_ten_nguoi_nhan").GetString() ?? "";
+                string soDienThoai = body.GetProperty("so_dien_thoai").GetString() ?? "";
+                string tinhThanh = body.GetProperty("tinh_thanh").GetString() ?? "";
+                string quanHuyen = body.TryGetProperty("quan_huyen", out var qh) ? (qh.GetString() ?? "") : "";
+                string phuongXa = body.TryGetProperty("phuong_xa", out var px) ? (px.GetString() ?? "") : "";
+                string diaChiCuThe = body.GetProperty("dia_chi_cu_the").GetString() ?? "";
+                bool laMacDinh = body.TryGetProperty("la_mac_dinh", out var lmd) && lmd.GetBoolean();
+
+                if (laMacDinh)
                 {
                     var otherAddresses = await _context.DiaChiGiaoHangs
                         .Where(d => d.TaiKhoanId == address.TaiKhoanId && d.Id != addressId)
@@ -630,20 +738,21 @@ namespace WebFashion.Api.Controllers
                     }
                 }
 
-                address.HoTenNguoiNhan = updatedAddress.HoTenNguoiNhan;
-                address.SoDienThoai = updatedAddress.SoDienThoai;
-                address.DiaChiCuThe = updatedAddress.DiaChiCuThe;
-                address.TinhThanh = updatedAddress.TinhThanh;
-                address.QuanHuyen = updatedAddress.QuanHuyen;
-                address.PhuongXa = updatedAddress.PhuongXa;
-                address.LaMacDinh = updatedAddress.LaMacDinh;
+                address.HoTenNguoiNhan = hoTenNguoiNhan;
+                address.SoDienThoai = soDienThoai;
+                address.DiaChiCuThe = diaChiCuThe;
+                address.TinhThanh = tinhThanh;
+                address.QuanHuyen = quanHuyen;
+                address.PhuongXa = phuongXa;
+                address.LaMacDinh = laMacDinh;
 
                 await _context.SaveChangesAsync();
 
                 return Ok(new { message = "Cập nhật địa chỉ thành công!" });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine($"Error UpdateAddress: {ex.Message}");
                 return StatusCode(500, new { message = "Lỗi server khi cập nhật địa chỉ!" });
             }
         }
@@ -873,29 +982,29 @@ namespace WebFashion.Api.Controllers
 
                 var orderDetailsList = order.ChiTietDonHangs.Select(ct => new
                 {
-                    ct.Id,
-                    ct.TenSpLucMua,
-                    ct.SkuLucMua,
-                    ct.SoLuong,
-                    ct.DonGia,
-                    ct.ThanhTien,
+                    id = ct.Id,
+                    ten_sp_luc_mua = ct.TenSpLucMua,
+                    sku_luc_mua = ct.SkuLucMua,
+                    so_luong = ct.SoLuong,
+                    don_gia = ct.DonGia,
+                    thanh_tien = ct.ThanhTien,
                     bien_the = ct.BienThe != null ? new
                     {
-                        ct.BienThe.Id,
-                        ct.BienThe.MauSac,
-                        ct.BienThe.DungLuong,
-                        ct.BienThe.Ram,
-                        ct.BienThe.GiaBan,
+                        id = ct.BienThe.Id,
+                        mau_sac = ct.BienThe.MauSac,
+                        dung_luong = ct.BienThe.DungLuong,
+                        ram = ct.BienThe.Ram,
+                        gia_ban = ct.BienThe.GiaBan,
                         san_pham = ct.BienThe.SanPham != null ? new
                         {
-                            ct.BienThe.SanPham.Id,
-                            ct.BienThe.SanPham.TenSanPham,
-                            ct.BienThe.SanPham.Slug,
+                            id = ct.BienThe.SanPham.Id,
+                            ten_san_pham = ct.BienThe.SanPham.TenSanPham,
+                            slug = ct.BienThe.SanPham.Slug,
                             hinh_anh = ct.BienThe.SanPham.HinhAnhSanPhams.Select(img => new
                             {
-                                img.Id,
-                                img.UrlAnh,
-                                img.LaAnhChinh
+                                id = img.Id,
+                                url_anh = img.UrlAnh,
+                                la_anh_chinh = img.LaAnhChinh
                             }).ToList()
                         } : null
                     } : null
@@ -923,16 +1032,16 @@ namespace WebFashion.Api.Controllers
                     { "lich_su_giao_hang", trackingLogs },
                     { "chi_tiet", orderDetailsList },
                     { "giao_dich", transaction != null ? new {
-                        transaction.Id,
-                        transaction.MaGiaoDich,
-                        transaction.MaGiaoDichDoiTac,
-                        transaction.SoTien,
-                        transaction.TrangThai,
-                        transaction.ThoiGianThanhToan,
+                        id = transaction.Id,
+                        ma_giao_dich = transaction.MaGiaoDich,
+                        ma_giao_dich_doi_tac = transaction.MaGiaoDichDoiTac,
+                        so_tien = transaction.SoTien,
+                        trang_thai = transaction.TrangThai,
+                        thoi_gian_thanh_toan = transaction.ThoiGianThanhToan,
                         phuong_thuc = transaction.PhuongThuc != null ? new {
-                            transaction.PhuongThuc.Id,
-                            transaction.PhuongThuc.TenPhuongThuc,
-                            transaction.PhuongThuc.Loai
+                            id = transaction.PhuongThuc.Id,
+                            ten_phuong_thuc = transaction.PhuongThuc.TenPhuongThuc,
+                            loai = transaction.PhuongThuc.Loai
                         } : null
                     } : null }
                 };

@@ -5,7 +5,7 @@ import BASE_URL from "../config/api";
 const parseTemplate = (templateStr, dataObj) => {
   if (!templateStr || typeof templateStr !== 'string') return "";
   return templateStr.replace(/\{(\w+)\}/g, (match, key) => {
-    return dataObj[key] !== undefined ? dataObj[key] : match;
+    return dataObj && dataObj[key] !== undefined ? dataObj[key] : match;
   });
 };
 

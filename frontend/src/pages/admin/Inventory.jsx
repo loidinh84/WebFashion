@@ -156,6 +156,50 @@ const Inventory = () => {
     });
   };
 
+  const handleComplete = async (id, e) => {
+    e.stopPropagation();
+    Swal.fire({
+      title: "Hoàn thành phiếu nhập",
+      text: "Bạn có chắc chắn muốn hoàn thành phiếu nhập này? Tồn kho các sản phẩm sẽ được cộng thêm.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#10b981",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Hoàn thành",
+      cancelButtonText: "Bỏ qua",
+      customClass: {
+        popup: 'rounded-xl font-sans',
+        title: 'text-lg font-bold text-gray-800',
+        htmlContainer: 'text-sm text-gray-600',
+      }
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+          const res = await fetch(`${BASE_URL}/api/phieu-nhap/${id}/complete`, {
+            method: "PATCH",
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const json = res.ok ? {} : await res.json();
+          if (res.ok) {
+            toast.success("Hoàn thành phiếu nhập thành công!");
+            fetchData(page);
+            if (expandedId === id) {
+              const detailRes = await fetch(`${BASE_URL}/api/phieu-nhap/${id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              setExpandedDetail(await detailRes.json());
+            }
+          } else {
+            toast.error(json.message || "Lỗi khi hoàn thành phiếu!");
+          }
+        } catch {
+          toast.error("Lỗi khi hoàn thành phiếu!");
+        }
+      }
+    });
+  };
+
   const handlePrint = useReactToPrint({
     contentRef: printRef,
     documentTitle: `PhieuNhap_${expandedDetail?.ma_phieu || ""}`,
@@ -395,10 +439,16 @@ const Inventory = () => {
                                   <div className="flex justify-between items-end mt-4">
                                     <div className="flex gap-2">
                                       {expandedDetail.trang_thai === "draft" && (
-                                        <button onClick={(e) => handleCancel(expandedDetail.id, e)}
-                                          className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded text-sm font-semibold cursor-pointer transition">
-                                          Hủy phiếu
-                                        </button>
+                                        <>
+                                          <button onClick={(e) => handleComplete(expandedDetail.id, e)}
+                                            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded text-sm font-semibold cursor-pointer transition">
+                                            Hoàn thành
+                                          </button>
+                                          <button onClick={(e) => handleCancel(expandedDetail.id, e)}
+                                            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded text-sm font-semibold cursor-pointer transition">
+                                            Hủy phiếu
+                                          </button>
+                                        </>
                                       )}
                                       <button onClick={handlePrint}
                                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-semibold cursor-pointer transition flex items-center gap-1.5">

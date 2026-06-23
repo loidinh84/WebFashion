@@ -72,6 +72,37 @@ namespace WebFashion.Api.Controllers
             }
         }
 
+        private static decimal SafeGetDecimal(JsonElement element)
+        {
+            if (element.ValueKind == JsonValueKind.Number)
+            {
+                return element.GetDecimal();
+            }
+            if (element.ValueKind == JsonValueKind.String)
+            {
+                var str = element.GetString();
+                if (string.IsNullOrWhiteSpace(str)) return 0m;
+                if (decimal.TryParse(str, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var val)) return val;
+                if (decimal.TryParse(str, out var valLocal)) return valLocal;
+            }
+            return 0m;
+        }
+
+        private static int SafeGetInt32(JsonElement element)
+        {
+            if (element.ValueKind == JsonValueKind.Number)
+            {
+                return element.GetInt32();
+            }
+            if (element.ValueKind == JsonValueKind.String)
+            {
+                var str = element.GetString();
+                if (string.IsNullOrWhiteSpace(str)) return 0;
+                if (int.TryParse(str, out var val)) return val;
+            }
+            return 0;
+        }
+
         // 2. THÊM HẠNG THẺ MỚI
         // POST: api/memberships
         [HttpPost]
@@ -85,9 +116,9 @@ namespace WebFashion.Api.Controllers
                 }
 
                 string? tenHang = body.TryGetProperty("ten_hang", out var tenProp) ? tenProp.GetString() : null;
-                decimal mucChiTieuTu = body.TryGetProperty("muc_chi_tieu_tu", out var tuProp) ? tuProp.GetDecimal() : 0m;
-                decimal tyLeGiamGia = body.TryGetProperty("ty_le_giam_gia", out var giamProp) ? giamProp.GetDecimal() : 0m;
-                int diemThuongThem = body.TryGetProperty("diem_thuong_them", out var diemProp) ? diemProp.GetInt32() : 0;
+                decimal mucChiTieuTu = body.TryGetProperty("muc_chi_tieu_tu", out var tuProp) ? SafeGetDecimal(tuProp) : 0m;
+                decimal tyLeGiamGia = body.TryGetProperty("ty_le_giam_gia", out var giamProp) ? SafeGetDecimal(giamProp) : 0m;
+                int diemThuongThem = body.TryGetProperty("diem_thuong_them", out var diemProp) ? SafeGetInt32(diemProp) : 0;
                 string mauThe = body.TryGetProperty("mau_the", out var mauProp) ? (mauProp.GetString() ?? "#2563eb") : "#2563eb";
                 string moTaQuyenLoi = body.TryGetProperty("mo_ta_quyen_loi", out var moTaProp) ? (moTaProp.GetString() ?? "") : "";
 
@@ -145,9 +176,9 @@ namespace WebFashion.Api.Controllers
                 }
 
                 string? tenHang = body.TryGetProperty("ten_hang", out var tenProp) ? tenProp.GetString() : the.TenHang;
-                decimal mucChiTieuTu = body.TryGetProperty("muc_chi_tieu_tu", out var tuProp) ? tuProp.GetDecimal() : the.MucChiTieuTu;
-                decimal tyLeGiamGia = body.TryGetProperty("ty_le_giam_gia", out var giamProp) ? giamProp.GetDecimal() : the.TyLeGiamGia;
-                int diemThuongThem = body.TryGetProperty("diem_thuong_them", out var diemProp) ? diemProp.GetInt32() : the.DiemThuongThem;
+                decimal mucChiTieuTu = body.TryGetProperty("muc_chi_tieu_tu", out var tuProp) ? SafeGetDecimal(tuProp) : the.MucChiTieuTu;
+                decimal tyLeGiamGia = body.TryGetProperty("ty_le_giam_gia", out var giamProp) ? SafeGetDecimal(giamProp) : the.TyLeGiamGia;
+                int diemThuongThem = body.TryGetProperty("diem_thuong_them", out var diemProp) ? SafeGetInt32(diemProp) : the.DiemThuongThem;
                 string? mauThe = body.TryGetProperty("mau_the", out var mauProp) ? mauProp.GetString() : the.MauThe;
                 string? moTaQuyenLoi = body.TryGetProperty("mo_ta_quyen_loi", out var moTaProp) ? moTaProp.GetString() : the.MoTaQuyenLoi;
 

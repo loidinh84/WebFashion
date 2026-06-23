@@ -79,7 +79,7 @@ namespace WebFashion.Api.Controllers
             public string Name { get; set; } = null!;
 
             [JsonPropertyName("price")]
-            public string? Price { get; set; }
+            public object? Price { get; set; }
 
             [JsonPropertyName("specs")]
             public object? Specs { get; set; }

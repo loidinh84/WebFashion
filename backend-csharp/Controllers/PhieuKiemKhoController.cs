@@ -311,6 +311,54 @@ namespace WebFashion.Api.Controllers
             }
         }
 
+        // 4b. PATCH: api/kiem-kho/{id}/complete
+        [HttpPatch("{id}/complete")]
+        public async Task<IActionResult> Complete(long id)
+        {
+            if (!IsAdmin()) return StatusCode(403, new { message = "Quyền truy cập bị từ chối!" });
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var phieu = await _context.PhieuKiemKhos
+                    .Include(p => p.ChiTietKiemKhos)
+                    .FirstOrDefaultAsync(p => p.Id == id);
+
+                if (phieu == null)
+                {
+                    return NotFound(new { message = "Không tìm thấy phiếu kiểm kho!" });
+                }
+
+                if (phieu.TrangThai != "draft")
+                {
+                    return BadRequest(new { message = "Phiếu này không ở trạng thái nháp!" });
+                }
+
+                // Cập nhật tồn kho thực tế
+                var items = phieu.ChiTietKiemKhos.Select(ct => new AuditItemDto
+                {
+                    BienTheId = ct.BienTheId,
+                    SoLuongHeThong = ct.SoLuongHeThong ?? 0,
+                    SoLuongThucTe = ct.SoLuongThucTe ?? 0
+                }).ToList();
+
+                await CapNhatTonKhoAsync(items);
+
+                phieu.TrangThai = "balanced";
+                phieu.UpdatedAt = DateTimeOffset.UtcNow;
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+                return Ok(new { message = "Cân bằng kho thành công! Tồn kho đã được cập nhật." });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                Console.WriteLine($"Lỗi complete PhieuKiemKho: {ex.Message}");
+                return StatusCode(500, new { message = "Lỗi server khi cân bằng kho!" });
+            }
+        }
+
         // 5. GET: api/kiem-kho/search-bien-the
         [HttpGet("search-bien-the")]
         public async Task<IActionResult> SearchBienThe([FromQuery] string q = "")
